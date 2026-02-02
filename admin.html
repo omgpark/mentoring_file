@@ -427,10 +427,10 @@
           <td>${escapeHtml(summary)}</td>
           <td>
             <div class="actions">
-              <button class="btn-sm" data-action="single" data-index="${i}">단일 미리보기</button>
-              <button class="btn-sm primary" data-action="singlePrint" data-index="${i}">단일 출력</button>
-              <button class="btn-sm" data-action="edit" data-index="${i}">수정</button>
-              <button class="btn-sm danger" data-action="del" data-index="${i}">삭제</button>
+              <button class="btn-sm" data-action="single" data-id="${l.id}">단일 미리보기</button>
+              <button class="btn-sm primary" data-action="singlePrint" data-id="${l.id}">단일 출력</button>
+              <button class="btn-sm" data-action="edit" data-id="${l.id}">수정</button>
+              <button class="btn-sm danger" data-action="del" data-id="${l.id}">삭제</button>
             </div>
           </td>
         </tr>`;
@@ -827,18 +827,25 @@
     });
 
     // 삭제
-    $('btnClearAll').addEventListener('click', () => {
-      if(!confirm('정말로 모든 일지를 삭제할까요? (되돌릴 수 없습니다)')) return;
-      localStorage.removeItem('logs');
-      populateMentorOptions();
-      currentFiltered = null;
-      renderAdminTable([]);
-      renderStats();
-      alert('삭제되었습니다.');
-    });
+    $('btnClearAll').addEventListener('click', async () => {
+  if(!confirm('정말로 모든 일지를 삭제할까요? (되돌릴 수 없습니다)')) return;
+
+  // 1️⃣ Firestore 전체 삭제
+  await window.adminClearAllSessions();
+
+  // 2️⃣ 화면용 캐시 초기화
+  setLogs([]);
+  populateMentorOptions();
+  currentFiltered = null;
+
+  // 3️⃣ 화면 갱신
+  renderAdminTable([]);
+  renderStats();
+  alert('전체 삭제되었습니다.');
+});
 
     // 테이블 액션 (삭제/수정/단일 출력)
-    $('adminTable').addEventListener('click', (e) => {
+    $('adminTable').addEventListener('click', async (e) => {
       const b = e.target.closest('button[data-action]');
       if(!b) return;
 
@@ -850,23 +857,31 @@
       // 조회(필터) 상태에서도 안정적이게 하려면, 버튼에 실제 logsIndex를 넣어야 함.
       // 여기서는 renderAdminTable()가 항상 전체 logs index를 넣도록 되어 있으니 OK.
 
-      const logs = getLogs();
-      const l = logs[idx];
-      if(!l) return alert('일지를 찾을 수 없습니다.');
+if(action === 'del'){
+  const id = btn.dataset.id;
+  if(!id) return alert('문서 ID를 찾을 수 없습니다.');
+  if(!confirm('이 일지를 삭제할까요?')) return;
 
-      if(action === 'del'){
-        if(!confirm('이 일지를 삭제할까요?')) return;
-        logs.splice(idx,1);
-        setLogs(logs);
-        populateMentorOptions();
-        // 현재 조회 상태면 다시 필터 적용
-        if(currentFiltered){
-          const opt = getOutputOption();
-          currentFiltered = filterLogs(getLogs(), opt);
-          renderAdminTable(currentFiltered);
-        } else {
-          renderAdminTable();
-        }
+  // 1️⃣ Firestore에서 진짜 삭제
+  await window.adminDeleteSession(id);
+
+  // 2️⃣ Firestore에서 다시 불러오기
+  const logs = await window.adminLoadSessions();
+  setLogs(logs);
+
+  populateMentorOptions();
+
+  // 3️⃣ 화면 다시 렌더링
+  if(currentFiltered){
+    const opt = getOutputOption();
+    currentFiltered = filterLogs(logs, opt);
+    renderAdminTable(currentFiltered);
+  } else {
+    renderAdminTable();
+  }
+
+  renderStats();
+}
         renderStats();
         return;
       }
