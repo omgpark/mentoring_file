@@ -83,7 +83,8 @@
       <div class="row">
         <div>
           <label for="optMentor">멘토명</label>
-          <select id="optMentor"></select>
+          <input id="optMentor" list="mentorList" placeholder="멘토명 입력/선택" />
+          <datalist id="mentorList"></datalist>
         </div>
         <div>
           <label for="optField">분야</label>
@@ -516,7 +517,18 @@ const sections = Array.from(document.querySelectorAll('main section'));
     $('adminPanel').style.display = 'block';
     $('adminListCard').style.display = 'block';
     const sc = $('adminStatsCard'); if(sc) sc.style.display = 'block';
-    populateMentorOptions();
+    function populateMentorOptions(){
+  const logs = JSON.parse(localStorage.getItem('logs') || '[]');
+  const names = Array.from(new Set(logs.map(l => l.mentor?.name).filter(Boolean)))
+    .sort((a,b)=>a.localeCompare(b,'ko'));
+
+  const dl = document.getElementById('mentorList');
+  if(dl){
+    dl.innerHTML =
+      '<option value="전체"></option>' +
+      names.map(n => `<option value="${escapeHtml(n)}"></option>`).join('');
+  }
+}
     renderAdminTable();
     renderStats();
   });
@@ -711,12 +723,13 @@ on('btnRefreshAdmin', 'click', () => { populateMentorOptions(); renderAdminTable
   });
 
   function getOutputOption(){
-    return {
-      mentor: ($('optMentor').value || '전체').trim() || '전체',
-      field: ($('optField').value || '전체').trim() || '전체',
-      subject: ($('optSubject').value || '전체').trim() || '전체'
-    };
-  }
+  const mentorRaw = (document.getElementById('optMentor')?.value || '').trim();
+  return {
+    mentor: mentorRaw || '전체',
+    field: ($('optField').value || '전체').trim() || '전체',
+    subject: ($('optSubject').value || '전체').trim() || '전체'
+  };
+}
 
   const backdrop = $('previewBackdrop');
 
