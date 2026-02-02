@@ -309,11 +309,12 @@ const sections = Array.from(document.querySelectorAll('main section'));
   function isMMDD(v){ return /^\d{2}$/.test(v); }
 
   function autoNext(el, nextEl, len){
-    el.addEventListener('input', () => {
-      el.value = el.value.replace(/\D/g,'').slice(0, len);
-      if(el.value.length >= len) nextEl.focus();
-    });
-  }
+  if(!el || !nextEl) return;   // ✅ admin 페이지엔 없는 요소들이라면 그냥 스킵
+  el.addEventListener('input', () => {
+    el.value = el.value.replace(/\D/g,'').slice(0, len);
+    if(el.value.length >= len) nextEl.focus();
+  });
+}
   autoNext($('birthY'), $('birthM'), 4);
   autoNext($('birthM'), $('birthD'), 2);
   autoNext($('logY'), $('logM'), 4);
