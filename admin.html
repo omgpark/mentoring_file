@@ -75,7 +75,7 @@
       <label for="adminPw">관리자 비밀번호</label>
       <input type="password" id="adminPw" placeholder="비밀번호 입력" />
       <button class="btn primary" id="adminLogin" type="button">로그인</button>
-      <div class="muted" style="margin-top:10px">※ 기본 비밀번호: 1234</div>
+      <div class="muted" style="margin-top:10px">※ 기본 비밀번호: 1388</div>
     </div>
 
     <div class="card" id="adminPanel" style="display:none">
@@ -953,34 +953,34 @@ on('btnPrintFromPreview', 'click', () => { if(lastPreviewHTML) openPrintWindow(l
         <h3>출력할 일지가 없습니다</h3>
         <p>관리자 출력 옵션을 확인해 주세요.</p>
 <script>
-/* ✅ 로그인 버튼이 안 먹을 때를 위한 "강제 로그인 패치" */
+/* ✅ 관리자 로그인 패치 (비밀번호: 1388 고정) */
 document.addEventListener('DOMContentLoaded', () => {
   const $ = (id) => document.getElementById(id);
 
   const btn = $('adminLogin');
-  if(!btn) return;
+  if (!btn) return;
 
   btn.addEventListener('click', () => {
     const pw = ($('adminPw')?.value || '').trim();
 
-    // 일단 둘 다 허용(테스트용) — 나중에 하나로 고정하면 됨
-    if(pw !== '1234' && pw !== '1388'){
+    // ✅ 1388만 허용
+    if (pw !== '1388') {
       alert('비밀번호 오류');
       return;
     }
 
-    // 패널 표시
-    const panel = $('adminPanel'); if(panel) panel.style.display = 'block';
-    const listCard = $('adminListCard'); if(listCard) listCard.style.display = 'block';
-    const statsCard = $('adminStatsCard'); if(statsCard) statsCard.style.display = 'block';
+    // ✅ 관리자 패널 표시
+    $('adminPanel') && ($('adminPanel').style.display = 'block');
+    $('adminListCard') && ($('adminListCard').style.display = 'block');
+    $('adminStatsCard') && ($('adminStatsCard').style.display = 'block');
 
-    // 기존 함수가 살아있으면 실행 (스크립트가 중간에 죽어도 안전)
-    if(typeof window.populateMentorOptions === 'function') window.populateMentorOptions();
-    if(typeof window.renderAdminTable === 'function') window.renderAdminTable();
-    if(typeof window.renderStats === 'function') window.renderStats();
+    // ✅ 기존 함수가 있으면 실행
+    if (typeof window.populateMentorOptions === 'function') window.populateMentorOptions();
+    if (typeof window.renderAdminTable === 'function') window.renderAdminTable();
+    if (typeof window.renderStats === 'function') window.renderStats();
   });
 });
-</script>        
+</script>  
       </body></html>`;
     }
 
