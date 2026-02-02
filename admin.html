@@ -595,8 +595,14 @@
       </div>
     `;
 
+    let runningTotalMin = 0;
+   
     const bodyPages = pages.map((l) => {
       const dateDot = formatDateDot(l.date);
+      const thisMin = minutesBetween(l.start, l.end);
+      runningTotalMin += thisMin;
+      const runningTotalText = minutesToText(runningTotalMin);
+     
       const totalMinText = (l.total && String(l.total).trim()) ? l.total : (calcTotal(l.start,l.end) || '');
       const mentorName = l.mentor?.name || '';
       const menteeText = (Array.isArray(l.mentees)?l.mentees:[]).join(', ');
@@ -638,7 +644,7 @@
               <th>1365 봉사활동<br>시간 적립 내용</th>
               <td colspan="3">
                 활동 시간: ${escapeHtml(totalMinText)}<br>
-                누적 시간: ${escapeHtml(totalTimeText)}
+                누적 시간: ${escapeHtml(runningTotalText)}
               </td>
             </tr>
           </table>
