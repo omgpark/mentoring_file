@@ -852,57 +852,58 @@
   alert('전체 삭제되었습니다.');
 });
 
-    // 테이블 액션 (삭제/수정/단일 출력)
-    $('adminTable').addEventListener('click', async (e) => {
-      const b = e.target.closest('button[data-action]');
-      if(!b) return;
+// 테이블 액션 (삭제/수정/단일 출력)
+$('adminTable').addEventListener('click', async (e) => {
+  const b = e.target.closest('button[data-action]');
+  if(!b) return;
 
-      const action = b.dataset.action;
-      const idx = parseInt(b.dataset.index, 10);
-      if(Number.isNaN(idx)) return;
-
-      // 주의: index는 "전체 logs" 기준으로 저장되어 있음.
-      // 조회(필터) 상태에서도 안정적이게 하려면, 버튼에 실제 logsIndex를 넣어야 함.
-      // 여기서는 renderAdminTable()가 항상 전체 logs index를 넣도록 되어 있으니 OK.
-
-if(action === 'del'){
-  const id = b.dataset.id;
+  const action = b.dataset.action;
+  const id = b.dataset.id;              // ✅ Firestore 문서 id
   if(!id) return alert('문서 ID를 찾을 수 없습니다.');
-  if(!confirm('이 일지를 삭제할까요?')) return;
 
-  // 1️⃣ Firestore에서 진짜 삭제
-  await window.adminDeleteSession(id);
+  const logs = getLogs();
+  const idx = logs.findIndex(x => x.id === id);
+  const l = logs[idx];
+  if(!l) return alert('일지를 찾을 수 없습니다.');
 
-  // 2️⃣ Firestore에서 다시 불러오기
-  const logs = await window.adminLoadSessions();
-  setLogs(logs);
+  if(action === 'del'){
+    if(!confirm('이 일지를 삭제할까요?')) return;
 
-  populateMentorOptions();
+    // 1) Firestore에서 삭제
+    await window.adminDeleteSession(id);
 
-  // 3️⃣ 화면 다시 렌더링
-  if(currentFiltered){
-    const opt = getOutputOption();
-    currentFiltered = filterLogs(logs, opt);
-    renderAdminTable(currentFiltered);
-  } else {
-    renderAdminTable();
+    // 2) Firestore에서 다시 불러와서 화면 갱신
+    const fresh = await window.loadAllSessions();
+    setLogs(fresh);
+
+    populateMentorOptions();
+
+    if(currentFiltered){
+      const opt = getOutputOption();
+      currentFiltered = filterLogs(fresh, opt);
+      renderAdminTable(currentFiltered);
+    } else {
+      renderAdminTable();
+    }
+
+    renderStats();
+    return;
   }
 
-  renderStats();
-}
-        renderStats();
-        return;
-      }
+  if(action === 'edit'){
+    openEdit(idx, l);
+    return;
+  }
 
-      if(action === 'edit'){
-        openEdit(idx, l);
-        return;
-      }
+  const html = buildPrintHTML([l], {
+    mentor: l.mentor?.name || '전체',
+    field: '전체',
+    subject: '전체'
+  });
 
-      const html = buildPrintHTML([l], { mentor: l.mentor?.name || '전체', field: '전체', subject: '전체' });
-      if(action === 'single') openPreview(html);
-      if(action === 'singlePrint') openPrintWindow(html);
-    });
+  if(action === 'single') openPreview(html);
+  if(action === 'singlePrint') openPrintWindow(html);
+});
 
     // preview / print all
     $('btnPreview').addEventListener('click', () => {
