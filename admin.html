@@ -791,19 +791,27 @@
   document.addEventListener('DOMContentLoaded', () => {
     // login
     $('adminLogin').addEventListener('click', async () => {
-      const pw = ($('adminPw').value || '').trim();
-      if(pw !== ADMIN_PW) return alert('비밀번호 오류');
+  const pw = ($('adminPw').value || '').trim();
+  if(pw !== ADMIN_PW) return alert('비밀번호 오류');
 
-      $('adminPanel').style.display = 'block';
-      $('adminListCard').style.display = 'block';
-      $('adminStatsCard').style.display = 'block';
+  try {
+    window.__adminLogs = await window.loadAllSessions();
+  } catch (e) {
+    console.error(e);
+    alert('Firestore 불러오기 실패');
+    return;
+  }
 
-     window.__adminLogs = await window.loadAllSessions();
-      populateMentorOptions();
-      currentFiltered = null;
-      renderAdminTable();
-      renderStats();
-    });
+  $('adminPanel').style.display = 'block';
+  $('adminListCard').style.display = 'block';
+  $('adminStatsCard').style.display = 'block';
+
+  populateMentorOptions();
+  currentFiltered = null;
+  renderAdminTable();
+  renderStats();
+}); 
+  });
 
     // enter key login
     $('adminPw').addEventListener('keydown', (e) => {
