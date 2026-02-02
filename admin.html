@@ -858,7 +858,7 @@
       // 여기서는 renderAdminTable()가 항상 전체 logs index를 넣도록 되어 있으니 OK.
 
 if(action === 'del'){
-  const id = btn.dataset.id;
+  const id = b.dataset.id;
   if(!id) return alert('문서 ID를 찾을 수 없습니다.');
   if(!confirm('이 일지를 삭제할까요?')) return;
 
