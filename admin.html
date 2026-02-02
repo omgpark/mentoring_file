@@ -1104,7 +1104,30 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 })();
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const $ = (id) => document.getElementById(id);
 
+  const btn = $('adminLogin');
+  if (!btn) return;
+
+  btn.addEventListener('click', () => {
+    const pw = ($('adminPw')?.value || '').trim();
+
+    if (pw !== '1388') {
+      alert('비밀번호 오류');
+      return;
+    }
+
+    if ($('adminPanel')) $('adminPanel').style.display = 'block';
+    if ($('adminListCard')) $('adminListCard').style.display = 'block';
+    if ($('adminStatsCard')) $('adminStatsCard').style.display = 'block';
+
+    if (typeof window.populateMentorOptions === 'function') window.populateMentorOptions();
+    if (typeof window.renderAdminTable === 'function') window.renderAdminTable();
+    if (typeof window.renderStats === 'function') window.renderStats();
+  });
+});
 </script>
 </body>
 </html>
