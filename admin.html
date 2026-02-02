@@ -291,6 +291,7 @@
 (() => {
   'use strict';
   const $ = (id) => document.getElementById(id);
+ const on = (id, ev, fn) => { const el = $(id); if(el) el.addEventListener(ev, fn); };
 
   
   const on = (id, ev, fn) => { const el = $(id); if(el) el.addEventListener(ev, fn); return el; };
