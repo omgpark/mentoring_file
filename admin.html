@@ -1046,6 +1046,8 @@ window.adminClearAllSessions = async () => {
   const batch = writeBatch(db);
   snap.forEach(d => batch.delete(d.ref));
   await batch.commit();
+};
+ 
 </script>
 </body>
 </html>
