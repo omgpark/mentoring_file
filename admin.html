@@ -355,9 +355,8 @@
 
   // ---------- data ----------
   function getLogs(){
-    try { return JSON.parse(localStorage.getItem('logs') || '[]'); }
-    catch(e){ return []; }
-  }
+  return window.__adminLogs || [];
+}
   function setLogs(logs){
     localStorage.setItem('logs', JSON.stringify(logs || []));
   }
@@ -791,7 +790,7 @@
   // ---------- events ----------
   document.addEventListener('DOMContentLoaded', () => {
     // login
-    $('adminLogin').addEventListener('click', () => {
+    $('adminLogin').addEventListener('click', async () => {
       const pw = ($('adminPw').value || '').trim();
       if(pw !== ADMIN_PW) return alert('비밀번호 오류');
 
@@ -799,6 +798,7 @@
       $('adminListCard').style.display = 'block';
       $('adminStatsCard').style.display = 'block';
 
+     window.__adminLogs = await window.loadAllSessions();
       populateMentorOptions();
       currentFiltered = null;
       renderAdminTable();
