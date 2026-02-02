@@ -990,7 +990,10 @@
 </script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+ import { 
+  getFirestore, collection, addDoc, getDocs,
+  doc, deleteDoc, updateDoc, writeBatch
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCQ_puEGRMy3HEKe1WozrJ2TgLVT2OG4oE",
@@ -1012,6 +1015,22 @@
     const snap = await getDocs(collection(db, "sessions"));
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   };
+ // ✅ 1개 삭제
+window.adminDeleteSession = async (id) => {
+  await deleteDoc(doc(db, "sessions", id));
+};
+
+// ✅ 1개 수정
+window.adminUpdateSession = async (id, data) => {
+  await updateDoc(doc(db, "sessions", id), data);
+};
+
+// ✅ 전체 삭제(진짜 다 지움)
+window.adminClearAllSessions = async () => {
+  const snap = await getDocs(collection(db, "sessions"));
+  const batch = writeBatch(db);
+  snap.forEach(d => batch.delete(d.ref));
+  await batch.commit();
 </script>
 </body>
 </html>
