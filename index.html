@@ -168,6 +168,8 @@
         <option value="한국사">한국사</option>
       </select>
 
+      <div id="menteeChecklist" style="margin-top:10px;"></div>
+     
       <label for="content">활동 내용</label>
       <textarea id="content" style="min-height:170px" placeholder="활동 내용을 입력해 주세요."></textarea>
 
@@ -1115,7 +1117,47 @@ on('btnPrintFromPreview', 'click', () => { if(lastPreviewHTML) openPrintWindow(l
   }
 
 })();
+<script>
+  // 🔥 멘티 목록 (index.html에 직접 관리)
+  const MENTEES = [
+    { name: "김형준", field: "기초학습", subject: "수학" },
+    { name: "김형준", field: "기초학습", subject: "국어" },
+    { name: "박지수", field: "고졸", subject: "영어" }
+  ];
 
+  function renderMenteeChecklist(list){
+    const wrap = document.getElementById("menteeChecklist");
+    if(!wrap) return;
+
+    if(list.length === 0){
+      wrap.innerHTML = "<div style='color:#666;'>해당 멘티 없음</div>";
+      return;
+    }
+
+    wrap.innerHTML = list.map(m => `
+      <label style="display:inline-flex;gap:8px;align-items:center;margin:6px 12px 6px 0;">
+        <input type="checkbox" value="${m.name}">
+        <span>${m.name}</span>
+      </label>
+    `).join("");
+  }
+
+  function refreshMentees(){
+    const field = document.getElementById("field")?.value || "";
+    const subject = document.getElementById("subject")?.value || "";
+
+    const filtered = MENTEES.filter(m => {
+      if(field && m.field !== field) return false;
+      if(subject && m.subject !== subject) return false;
+      return true;
+    });
+
+    renderMenteeChecklist(filtered);
+  }
+
+  document.getElementById("field")?.addEventListener("change", refreshMentees);
+  document.getElementById("subject")?.addEventListener("change", refreshMentees);
+ 
 </script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
