@@ -129,6 +129,8 @@
 
       <label for="youths">멘티 이름(여러 명 가능, 쉼표/줄바꿈 구분)</label>
       <textarea id="youths" placeholder="예) 고나예, 김기완 또는&#10;고나예&#10;김기완"></textarea>
+      <div id="menteeChecklist" class="chk" style="margin-top:10px;"></div>
+      <div class="muted">* 분야/과목을 선택하면 멘티 체크리스트가 자동으로 뜹니다. 체크하면 위 멘티칸에 자동 입력돼요.</div>
 
       <label>활동 장소</label>
       <div class="row">
@@ -344,7 +346,7 @@ const sections = Array.from(document.querySelectorAll('main section'));
     sections.forEach(s => s.classList.toggle('active', s.id === pageId));
     navButtons.forEach(b => b.classList.toggle('active', b.dataset.page === pageId));
     if(pageId === 'admin') { /* 관리자 로그인 후에만 목록/통계 표시 */ }
-    if(pageId === 'log') { syncMentorInfo(); syncFieldSubjectUI(); syncPlaceUI(); }
+    if(pageId === 'log') { syncMentorInfo(); syncFieldSubjectUI(); syncPlaceUI(); refreshMenteeChecklist(); }
   }
   navButtons.forEach(b => b.addEventListener('click', () => go(b.dataset.page)));
 
@@ -432,6 +434,59 @@ const sections = Array.from(document.querySelectorAll('main section'));
     const seen = new Set();
     const out = [];
     for(const t of tokens){ if(!seen.has(t)){ seen.add(t); out.push(t); } }
+
+  // =========================
+  // 멘티 체크리스트 (index.html에서 직접 관리)
+  // =========================
+  const MENTEES = [
+    // ✅ 여기만 네 멘티로 바꾸면 돼요
+    { name: "김형준", field: "기초학습", subject: "수학" },
+    { name: "김형준", field: "기초학습", subject: "국어" },
+    { name: "박지수", field: "고졸", subject: "영어" },
+  ];
+
+  function normalize(v){ return (v || '').trim(); }
+
+  function filterMentees(field, subject){
+    const f = normalize(field);
+    const s = normalize(subject);
+    return MENTEES.filter(m => {
+      if(f && m.field !== f) return false;
+      if(s && m.subject !== s) return false;
+      return true;
+    });
+  }
+
+  function renderMenteeChecklist(list){
+    const wrap = $('menteeChecklist');
+    if(!wrap) return;
+
+    if(!list.length){
+      wrap.innerHTML = "<span class='muted'>해당 조건의 멘티가 없습니다.</span>";
+      return;
+    }
+
+    const selected = new Set(parseMentees($('youths')?.value || ""));
+    wrap.innerHTML = list.map(m => {
+      const checked = selected.has(m.name) ? "checked" : "";
+      return `<label><input type="checkbox" value="${m.name}" ${checked}> ${m.name}</label>`;
+    }).join("");
+
+    // 체크 변경 → 멘티 입력칸 자동 반영
+    wrap.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const picked = Array.from(wrap.querySelectorAll('input[type="checkbox"]:checked')).map(x => x.value);
+        $('youths').value = picked.join(', ');
+      });
+    });
+  }
+
+  function refreshMenteeChecklist(){
+    const field = $('field')?.value || "";
+    const subject = $('subject')?.value || "";
+    const list = filterMentees(field, subject);
+    renderMenteeChecklist(list);
+  }
     return out;
   }
   function escapeHtml(s){
@@ -447,6 +502,11 @@ const sections = Array.from(document.querySelectorAll('main section'));
     $('mentorInfo').textContent = mentor ? `현재 출석 멘토: ${mentor.name} (${mentor.birth})` : '출석 등록 후 활동일지를 작성해 주세요.';
   }
   syncMentorInfo(); syncFieldSubjectUI(); syncPlaceUI();
+  // 분야/과목 변경 시 멘티 체크리스트 갱신
+  on('field','change', refreshMenteeChecklist);
+  on('subject','change', refreshMenteeChecklist);
+  // 처음에도 한 번
+  refreshMenteeChecklist();
 
   on('attendBtn', 'click', () => {
     const name = $('mentorName').value.trim();
