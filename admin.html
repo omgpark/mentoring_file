@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>관리자 · 멘토 출석/일지 시스템</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Noto Sans KR',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f4f6f9;color:#111}
+  header{background:#fff;border-bottom:1px solid #ddd;padding:16px;text-align:center;font-weight:800;letter-spacing:-.2px}
+  nav{display:flex;flex-wrap:wrap;background:#fff;border-bottom:1px solid #ddd}
+  main{max-width:980px;margin:0 auto;padding:16px}
+  .card{background:#fff;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+  .muted{color:#666;font-size:12px}
+  label{display:block;font-size:13px;margin-top:10px;font-weight:700}
+  input,textarea,select{width:100%;padding:10px;margin-top:6px;border:1px solid #cfd6e0;border-radius:10px;font-size:14px;background:#fff}
+  textarea{min-height:96px;resize:vertical}
+  .row{display:flex;gap:8px;align-items:flex-start}
+  .row > *{flex:1;min-width:0}
+  .chk{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+  .chk label{margin-top:0;font-weight:600}
+  .btn{margin-top:14px;width:100%;padding:12px;border:none;border-radius:10px;font-size:14px;cursor:pointer}
+  .btn.primary{background:#2f5bea;color:#fff;font-weight:800}
+  .btn.ghost{background:#eef2ff;color:#2f5bea;font-weight:800}
+  .btn-sm{padding:8px 10px;border-radius:9px;border:1px solid #d6dbe6;background:#fff;cursor:pointer;font-size:12px}
+  .btn-sm.primary{background:#2f5bea;border-color:#2f5bea;color:#fff;font-weight:800}
+  .btn-sm.danger{background:#ffecec;border-color:#ffd0d0;color:#b00020;font-weight:800}
+  .actions{display:flex;gap:8px;flex-wrap:wrap}
+  table.basic{width:100%;border-collapse:collapse;font-size:13px}
+  table.basic th, table.basic td{border:1px solid #d6dbe6;padding:10px;vertical-align:top}
+  table.basic th{background:#f7f9fc;text-align:center;white-space:nowrap}
+
+  /* modals */
+  .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:9999}
+  .modal{background:#fff;border-radius:14px;width:min(1100px,100%);height:min(92vh,900px);display:flex;flex-direction:column;overflow:hidden}
+  .modal-hd{padding:12px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .modal-hd b{font-size:14px}
+  .modal-bd{flex:1;background:#fafafa}
+  iframe{width:100%;height:100%;border:0;background:#fff}
+  .modal-ft{padding:12px 14px;border-top:1px solid #eee;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+
+  @media print {
+    nav, header, .no-print, .backdrop {display:none !important}
+    body{background:#fff}
+  }
+/* 멘티 선택: 과목 선택 전 비활성화 */
+#menteeSection.disabled{opacity:.45;pointer-events:none}
+#menteeGuide{display:none;margin:-6px 0 8px;color:#666;font-size:13px}
+
+.isHidden{display:none!important}
+.extra-guide{font-size:12px;color:#666;margin-top:6px}
+
+.mentee-guide{
+  margin-top:8px;
+  font-size:13px;
+  color:#666;
+}
+
+
+.mentee-title{
+  margin-bottom:32px;
+}
+
+
+.mentee-guide{
+  margin-top:32px;   /* 제목과 설명 사이를 확실히 분리 */
+  line-height:1.5;
+}
+
+
+/* ✅ 모바일: (관리자) 멘티 체크리스트 터치 간격 개선 */
+@media (max-width: 600px){
+  #editMenteeChecklist label,
+  #menteeChecklist label{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 0;
+    margin:0;
+  }
+  #editMenteeChecklist input[type="checkbox"],
+  #menteeChecklist input[type="checkbox"]{
+    transform: scale(1.2);
+    transform-origin: left center;
+  }
+}
+
+</style>
+</head>
+<body>
+<header>관리자 · 멘토 출석/일지 시스템</header>
+
+<nav class="no-print" aria-label="주요 메뉴">
+  <a class="btn-sm primary" href="index.html" style="margin:8px 12px; text-decoration:none; display:inline-flex; align-items:center;">← 메인으로</a>
+</nav>
+
+<main>
+  <section id="admin" class="active">
+    <div class="card">
+      <label for="adminPw">관리자 비밀번호</label>
+      <input type="password" id="adminPw" placeholder="비밀번호 입력" autocomplete="current-password" />
+      <button class="btn primary" id="adminLogin" type="button">로그인</button>
+    </div>
+
+    <div class="card" id="adminPanel" style="display:none">
+      <h3 style="margin:0 0 8px 0">출력 옵션</h3>
+
+      <div class="row">
+        <div>
+          <label for="optMentor">멘토명</label>
+          <input id="optMentor" list="mentorList" placeholder="멘토명 입력/선택 (비우면 전체)" />
+          <datalist id="mentorList"></datalist>
+        </div>
+        <div>
+          <label for="optField">분야</label>
+          <select id="optField">
+            <option value="전체">전체</option>
+            <option value="고졸">고졸</option>
+            <option value="중졸">중졸</option>
+            <option value="초졸">초졸</option>
+            <option value="기초학습">기초학습</option>
+            <option value="상주멘토링">상주멘토링</option>
+          </select>
+        </div>
+        <div>
+          <label for="optSubject">과목</label>
+          <select id="optSubject">
+            <option value="전체">전체</option>
+            <option value="국어">국어</option>
+            <option value="영어">영어</option>
+            <option value="수학">수학</option>
+            <option value="사회">사회</option>
+            <option value="과학">과학</option>
+            <option value="한국사">한국사</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="btnSearchAdmin" type="button">조회하기</button>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button class="btn ghost" id="btnPreview" type="button">미리보기</button>
+        <button class="btn primary" id="btnPrintAll" type="button">출력(새 창)</button>
+      </div>
+
+      <div class="muted" style="margin-top:10px">• 출력은 “요약 1페이지 + 선택된 일지들(페이지 자동 분리)”로 생성됩니다.</div>
+    </div>
+
+    <div class="card" id="adminListCard" style="display:none">
+      <div class="row" style="align-items:center">
+        <h3 style="margin:0">활동일지 목록</h3>
+        <div class="actions" style="justify-content:flex-end">
+          <button class="btn-sm" id="btnRefreshAdmin" type="button">새로고침</button>
+          <button class="btn-sm danger" id="btnClearAll" type="button">전체 삭제</button>
+        </div>
+      </div>
+
+      <div style="margin-top:10px; overflow:auto">
+        <table class="basic">
+          <thead>
+            <tr>
+              <th>멘토</th>
+              <th>활동일</th>
+              <th>요약</th>
+              <th>미리보기/출력</th>
+            </tr>
+          </thead>
+          <tbody id="adminTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" id="adminStatsCard" style="display:none">
+      <div class="muted" style="margin-top:0">※ 저장된 활동일지를 기준으로 자동 집계됩니다. (멘티는 쉼표/줄바꿈으로 입력된 이름을 기준으로 1회기씩 카운트)</div>
+
+      <div style="margin-top:12px; overflow:auto">
+        <table class="basic">
+          <tbody id="statsSummary"></tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:12px; overflow:auto">
+        <h4 style="margin:0 0 6px 0">멘토 · 분야별 회기</h4>
+        <table class="basic">
+          <thead><tr><th>멘토</th><th>분야</th><th>회기</th><th>누적 시간</th></tr></thead>
+          <tbody id="statsByMentor"></tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:12px; overflow:auto">
+        <h4 style="margin:0 0 6px 0">멘티별 출석(회기)</h4>
+        <table class="basic">
+          <thead><tr><th>멘티</th><th>총 회기</th></tr></thead>
+          <tbody id="statsByMentee"></tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:12px; overflow:auto">
+        <h4 style="margin:0 0 6px 0">멘토-멘티별 출석(회기)</h4>
+        <table class="basic">
+          <thead><tr><th>멘토</th><th>멘티</th><th>회기</th></tr></thead>
+          <tbody id="statsByPair"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- preview modal -->
+<div class="backdrop" id="previewBackdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="출력 미리보기">
+    <div class="modal-hd">
+      <b>출력 미리보기</b>
+      <button class="btn-sm" id="btnClosePreview" type="button">닫기</button>
+    </div>
+    <div class="modal-bd">
+      <iframe id="previewFrame" title="미리보기"></iframe>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-sm primary" id="btnPrintFromPreview" type="button">이대로 출력</button>
+    </div>
+  </div>
+</div>
+
+<!-- edit modal -->
+<div class="backdrop" id="editBackdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="일지 수정">
+    <div class="modal-hd">
+      <b>일지 수정</b>
+      <button class="btn-sm" id="btnCloseEdit" type="button">닫기</button>
+    </div>
+    <div class="modal-bd" style="background:#fff;overflow:auto">
+      <div style="padding:14px">
+        <div class="muted" id="editHint" style="margin-bottom:10px"></div>
+
+        <label style="font-weight:700;font-size:13px">멘토 이름</label>
+        <input id="editMentorName" />
+
+        <label style="font-weight:700;font-size:13px">멘토 생년월일(YYYY-MM-DD)</label>
+        <input id="editMentorBirth" placeholder="예) 2000-01-23" inputmode="numeric" />
+
+        <label style="font-weight:700;font-size:13px">활동 날짜(YYYY-MM-DD)</label>
+        <input id="editDate" placeholder="예) 2025-05-11" inputmode="numeric" />
+
+        <label style="font-weight:700;font-size:13px">시작 시간</label>
+        <input id="editStart" placeholder="1530 또는 15:30" inputmode="numeric" />
+
+        <label style="font-weight:700;font-size:13px">종료 시간</label>
+        <input id="editEnd" placeholder="1730 또는 17:30" inputmode="numeric" />
+
+        <label style="font-weight:700;font-size:13px">활동 장소</label>
+        <div class="row">
+          <select id="editPlaceMode">
+            <option value="">선택</option>
+            <option value="대면">대면</option>
+            <option value="비대면">비대면</option>
+          </select>
+          <select id="editPlaceDetail">
+            <option value="">(대면 시) 장소 선택</option>
+            <option value="탄탄대로실(3층)">탄탄대로실(3층)</option>
+            <option value="도서관(3층)">도서관(3층)</option>
+            <option value="상담실(3층)">상담실(3층)</option>
+            <option value="상담실(2층)">상담실(2층)</option>
+            <option value="라온실(B1층)">라온실(B1층)</option>
+          </select>
+        <div id="editPlaceGuide" style="display:none;font-size:12px;color:#666;margin-top:6px">비대면은 장소 선택이 필요 없어요.</div>
+        </div>
+
+        <label style="font-weight:700;font-size:13px">활동 분야</label>
+        <select id="editField">
+          <option value="">선택</option>
+          <option value="고졸">고졸</option>
+          <option value="중졸">중졸</option>
+          <option value="초졸">초졸</option>
+          <option value="기초학습">기초학습</option>
+          <option value="상주멘토링">상주멘토링</option>
+        </select>
+
+        <label style="font-weight:700;font-size:13px">과목</label>
+        <select id="editSubject">
+          <option value="">선택</option>
+          <option value="국어">국어</option>
+          <option value="영어">영어</option>
+          <option value="수학">수학</option>
+          <option value="사회">사회</option>
+          <option value="과학">과학</option>
+          <option value="한국사">한국사</option>
+        </select>
+
+        <label style="font-weight:700;font-size:13px">활동 내용</label>
+        <textarea id="editContent" style="min-height:160px"></textarea>
+
+        <label style="font-weight:700;font-size:13px">활동 소감</label>
+        <textarea id="editReflection" style="min-height:100px"></textarea>
+
+        <label style="font-weight:700;font-size:13px">오늘의 활동 만족도(1~5)</label>
+        <select id="editRating">
+          <option value="0">선택 안 함</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+        </select>
+
+        <label style="font-weight:700;font-size:13px">멘티 선택</label>
+        <div class="row" style="gap:10px; align-items:center">
+          <input id="editMenteeSearch" placeholder="멘티 검색 (이름 일부)" style="flex:2" />
+          <button class="btn-sm" id="btnEditMenteeAll" type="button">전체 선택</button>
+          <button class="btn-sm" id="btnEditMenteeClear" type="button">전체 해제</button>
+        </div>
+        <textarea id="editMentees" readonly style="min-height:80px" placeholder="아래 체크리스트에서 멘티를 선택해 주세요."></textarea>
+        <div id="editMenteeChecklist" class="chk" style="margin-top:10px;"></div>
+        <div class="muted">* 정해진 명단에서만 선택됩니다.</div>
+
+
+
+        <label style="font-weight:700;font-size:13px">요청사항</label>
+        <textarea id="editRequest" style="min-height:100px"></textarea>
+
+        <label style="font-weight:700;font-size:13px">다음 멘토링 일정</label>
+        <select id="editNext">
+          <option value="">선택</option>
+          <option value="변동 없습니다">변동 없습니다</option>
+          <option value="변동 필요합니다">변동 필요합니다</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-sm danger" id="btnCancelEdit" type="button">취소</button>
+      <button class="btn-sm primary" id="btnSaveEdit" type="button">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+
+  const ADMIN_PW = '1388';
+
+  // ---------- utils ----------
+  function escapeHtml(s){
+    return String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+  function normalizeTime(raw){
+    const v = String(raw||'').trim();
+    if (/^\d{4}$/.test(v)) return v.slice(0,2) + ':' + v.slice(2);
+    if (/^\d{2}:\d{2}$/.test(v)) return v;
+    if (/^\d{1,2}:\d{2}$/.test(v)) {
+      const [h,m]=v.split(':');
+      return String(h).padStart(2,'0')+':'+m;
+    }
+    return v;
+  }
+  function timeToMinutes(t){
+    const v = normalizeTime(t);
+    if(!/^\d{2}:\d{2}$/.test(v)) return null;
+    const [h,m] = v.split(':').map(Number);
+    if(Number.isNaN(h)||Number.isNaN(m)) return null;
+    return h*60+m;
+  }
+  function calcTotal(start, end){
+    const s = timeToMinutes(start);
+    const e = timeToMinutes(end);
+    if(s==null || e==null) return '';
+    const diff = Math.max(0, e-s);
+    const hh = Math.floor(diff/60);
+    const mm = diff%60;
+    return `${hh}시간 ${mm}분`;
+  }
+  function minutesBetween(start, end){
+    const s = timeToMinutes(start);
+    const e = timeToMinutes(end);
+    if(s==null || e==null) return 0;
+    return Math.max(0, e-s);
+  }
+  function minutesToText(mins){
+    const hh = Math.floor(mins/60);
+    const mm = mins%60;
+    return `${hh}시간 ${mm}분`;
+  }
+  function parseMentees(text){
+    const raw = String(text||'');
+    const tokens = raw.split(/[\n,]/g).map(s => s.trim()).filter(Boolean);
+    const seen = new Set();
+    const out = [];
+    for(const t of tokens){ if(!seen.has(t)){ seen.add(t); out.push(t); } }
+    return out;
+  }
+  function stars(n){
+    const k = Math.max(0, Math.min(5, parseInt(n||0,10) || 0));
+    return '★★★★★'.slice(0,k) + '☆☆☆☆☆'.slice(0,5-k);
+  }
+  function formatDateDot(dateStr){ return String(dateStr||'').replace(/-/g,'.'); }
+
+  // ---------- output option ----------
+  function getOutputOption(){
+    const mentorRaw = ($('optMentor')?.value || '').trim();
+    return {
+      mentor: mentorRaw || '전체',
+      field: ($('optField')?.value || '전체').trim() || '전체',
+      subject: ($('optSubject')?.value || '전체').trim() || '전체'
+    };
+  }
+
+  // ---------- data ----------
+  function getLogs(){
+  return window.__adminLogs || [];
+}
+
+  // =========================
+  // 멘티 체크리스트 (정해진 명단만)
+  // =========================
+  const MENTEES = [
+    // ✅ 여기만 네 멘티로 바꾸면 돼요
+  { name: "임경환", field: "고졸", subject: "국어" },
+  { name: "조민희", field: "고졸", subject: "국어" },
+  { name: "정제헌", field: "고졸", subject: "국어" },
+  { name: "홍주현", field: "고졸", subject: "국어" }, 
+  { name: "김형준", field: "기초학습", subject: "수학" },
+  { name: "박수빈", field: "기초학습", subject: "수학" },
+  { name: "박소민", field: "기초학습", subject: "수학" },
+  { name: "이혜원", field: "기초학습", subject: "수학" },
+  { name: "유지수", field: "기초학습", subject: "수학" },
+  { name: "정태성", field: "기초학습", subject: "수학" },
+  { name: "양민철", field: "기초학습", subject: "수학" },
+  { name: "김서희", field: "기초학습", subject: "수학" },
+  { name: "고은사랑", field: "고졸", subject: "수학" },
+  { name: "이시은", field: "고졸", subject: "수학" },
+  { name: "윤여운", field: "고졸", subject: "수학" },
+  { name: "홍주현", field: "고졸", subject: "수학" },  
+  { name: "김형준", field: "고졸", subject: "영어" },
+  { name: "김서희", field: "고졸", subject: "영어" },
+  { name: "서예령", field: "고졸", subject: "영어" },
+  { name: "조민우", field: "고졸", subject: "영어" },
+  { name: "정태성", field: "고졸", subject: "영어" },
+  { name: "정제헌", field: "고졸", subject: "영어" },
+  { name: "고수진", field: "고졸", subject: "한국사" },
+  { name: "신현주", field: "고졸", subject: "한국사" },
+  { name: "이정원", field: "고졸", subject: "한국사" },
+  { name: "유지수", field: "고졸", subject: "한국사" },
+  { name: "임경환", field: "고졸", subject: "한국사" },
+  { name: "유시은", field: "고졸", subject: "한국사" },
+  { name: "장은호", field: "고졸", subject: "한국사" },
+  { name: "장희재", field: "고졸", subject: "한국사" },
+  { name: "조민희", field: "고졸", subject: "한국사" },
+  { name: "김영우", field: "중졸", subject: "수학" },
+  { name: "김수아", field: "중졸", subject: "수학" },
+  { name: "송지은", field: "중졸", subject: "수학" },
+  { name: "최시언", field: "초졸", subject: "수학" } 
+  ];
+
+  function normalize(v){ return (v || '').trim(); }
+
+  function filterMentees(field, subject){
+    const f = normalize(field);
+    const s = normalize(subject);
+    return MENTEES.filter(m => {
+      if(f && m.field !== f) return false;
+      if(s && m.subject !== s) return false;
+      return true;
+    });
+  }
+
+  function uniqueNames(list){
+    const seen = new Set();
+    const out = [];
+    for(const m of list){
+      const n = m?.name;
+      if(!n || seen.has(n)) continue;
+      seen.add(n);
+      out.push(n);
+    }
+    return out;
+  }
+
+  // ✅ 전체(모든 과목/분야) '정해진 멘티' 이름 Set (추가 인원 판별용)
+  const ALL_PRESET_NAME_SET = new Set(uniqueNames(MENTEES));
+
+  function getEditSearchQuery(){
+    const q = $('editMenteeSearch')?.value || '';
+    return q.trim();
+  }
+
+  function getAllowedMenteeSet(field, subject){
+    const list = filterMentees(field, subject);
+    return new Set(uniqueNames(list));
+  }
+
+  function renderEditMenteeChecklist(){
+    const wrap = $('editMenteeChecklist');
+    if(!wrap) return;
+
+    const field = $('editField')?.value || "";
+    const subject = ($('editField')?.value === '상주멘토링') ? "" : ($('editSubject')?.value || "");
+    const q = getEditSearchQuery();
+
+    const names = Array.from(getAllowedMenteeSet(field, subject))
+      .filter(n => !q || n.includes(q));
+
+    if(!names.length){
+      wrap.innerHTML = "<span class='muted'>조건/검색에 맞는 멘티가 없습니다.</span>";
+      return;
+    }
+
+    const selected = new Set(parseMentees($('editMentees')?.value || ""));
+    wrap.innerHTML = names.map(name => {
+      const checked = selected.has(name) ? "checked" : "";
+      return `<label><input type="checkbox" value="${name}" ${checked}> ${name}</label>`;
+    }).join("");
+
+    const syncPickedToTextarea = () => {
+      const picked = Array.from(wrap.querySelectorAll('input[type="checkbox"]:checked')).map(x => x.value);
+      $('editMentees').value = picked.join(', ');
+    };
+
+    wrap.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', syncPickedToTextarea);
+    });
+  }
+
+  function setLogs(logs){
+    window.__adminLogs = Array.isArray(logs) ? logs : [];
+  }
+
+  // ---------- mentor options (datalist) ----------
+  function populateMentorOptions(){
+    const logs = getLogs();
+    const names = Array.from(new Set(logs.map(l => l?.mentor?.name).filter(Boolean))).sort((a,b)=>String(a).localeCompare(String(b),'ko'));
+    const dl = $('mentorList');
+    if(!dl) return;
+    dl.innerHTML =
+      '<option value="전체"></option>' +
+      names.map(n => `<option value="${escapeHtml(n)}"></option>`).join('');
+  }
+
+  // ---------- filtering ----------
+  function filterLogs(allLogs, opt){
+    return (allLogs||[]).filter(l => {
+      if(opt.mentor && opt.mentor !== '전체' && (l.mentor?.name||'') !== opt.mentor) return false;
+      if(opt.field && opt.field !== '전체' && (l.field||'') !== opt.field) return false;
+      if(opt.subject && opt.subject !== '전체') {
+        if((l.field||'') === '상주멘토링') return false;
+        if((l.subject||'') !== opt.subject) return false;
+      }
+      return true;
+    });
+  }
+  function assignSessions(filtered){
+    const logs = [...filtered].sort((a,b) => (a.date||'').localeCompare(b.date||''));
+    const counts = new Map();
+    return logs.map(l => {
+      const mentorName = l.mentor?.name || '';
+      const field = l.field || '';
+      const subject = (field === '상주멘토링') ? '' : (l.subject || '');
+      const key = `${mentorName}|${field}|${subject}`;
+      const next = (counts.get(key) || 0) + 1;
+      counts.set(key, next);
+      return Object.assign({}, l, { session: next });
+    });
+  }
+  function getTotalTime(logs){
+    let totalMin = 0;
+    for(const l of (logs||[])) totalMin += minutesBetween(l.start, l.end);
+    return minutesToText(totalMin);
+  }
+
+  // ---------- table ----------
+  let currentFiltered = null; // last "조회하기" result
+
+  function renderAdminTable(list){
+    const logs = Array.isArray(list) ? list : getLogs();
+    const tbody = $('adminTable');
+    if(!tbody) return;
+
+    if(!logs.length){
+      tbody.innerHTML = `<tr><td colspan="4">저장된 일지가 없습니다.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = logs.map((l,i)=>({l,i}))
+      .sort((a,b)=> (b.l.date||'').localeCompare(a.l.date||'') || (b.i-a.i))
+      .map(({l,i}) => {
+        const mentees = Array.isArray(l.mentees) ? l.mentees.join(', ') : '';
+        const summary = `멘티: ${mentees}${l.field ? ' · ' + l.field : ''}${(l.field!=='상주멘토링' && l.subject) ? ' / ' + l.subject : ''}`;
+        return `<tr>
+          <td>${escapeHtml(l.mentor?.name||'')}</td>
+          <td>${escapeHtml(formatDateDot(l.date||''))}</td>
+          <td>${escapeHtml(summary)}</td>
+          <td>
+            <div class="actions">
+              <button class="btn-sm" data-action="single" data-id="${l.id}">단일 미리보기</button>
+              <button class="btn-sm primary" data-action="singlePrint" data-id="${l.id}">단일 출력</button>
+              <button class="btn-sm" data-action="edit" data-id="${l.id}">수정</button>
+              <button class="btn-sm danger" data-action="del" data-id="${l.id}">삭제</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+  }
+
+  // ---------- stats ----------
+  function renderStats(){
+    const logs = getLogs();
+    const sumEl = $('statsSummary');
+    const byMentorEl = $('statsByMentor');
+    const byMenteeEl = $('statsByMentee');
+    const byPairEl = $('statsByPair');
+    if(!sumEl || !byMentorEl || !byMenteeEl || !byPairEl) return;
+
+    if(!logs.length){
+      sumEl.innerHTML = `<tr><th>요약</th><td>저장된 일지가 없습니다.</td></tr>`;
+      byMentorEl.innerHTML = `<tr><td colspan="4">-</td></tr>`;
+      byMenteeEl.innerHTML = `<tr><td colspan="2">-</td></tr>`;
+      byPairEl.innerHTML = `<tr><td colspan="3">-</td></tr>`;
+      return;
+    }
+
+    let totalMin = 0;
+    for(const l of logs) totalMin += minutesBetween(l.start, l.end);
+
+    const mentorFieldMap = new Map(); // mentor||field -> {mentor, field, sessions, minutes}
+    const menteeMap = new Map(); // mentee -> sessions
+    const pairMap = new Map();   // mentor||mentee -> sessions
+
+    for(const l of logs){
+      const mentor = l.mentor?.name || '';
+      const mins = minutesBetween(l.start, l.end);
+
+      if(mentor){
+        const field = (l.field && String(l.field).trim()) ? String(l.field).trim() : '미분류';
+        const key = `${mentor}||${field}`;
+        const cur = mentorFieldMap.get(key) || { mentor, field, sessions:0, minutes:0 };
+        cur.sessions += 1;
+        cur.minutes += mins;
+        mentorFieldMap.set(key, cur);
+      }
+
+      const mentees = Array.isArray(l.mentees) ? l.mentees : [];
+      for(const mm of mentees){
+        const mentee = String(mm||'').trim();
+        if(!mentee) continue;
+        menteeMap.set(mentee, (menteeMap.get(mentee)||0) + 1);
+
+        if(mentor){
+          const key = `${mentor}||${mentee}`;
+          pairMap.set(key, (pairMap.get(key)||0) + 1);
+        }
+      }
+    }
+
+    sumEl.innerHTML = `
+      <tr><th style="width:35%">총 일지 수</th><td>${logs.length}건</td></tr>
+      <tr><th>총 활동 회기</th><td>${logs.length}회기</td></tr>
+      <tr><th>총 누적시간</th><td>${escapeHtml(minutesToText(totalMin))}</td></tr>
+      <tr><th>멘토 수</th><td>${new Set(Array.from(mentorFieldMap.values()).map(v=>v.mentor)).size}명</td></tr>
+      <tr><th>멘티 수</th><td>${menteeMap.size}명</td></tr>
+    `;
+
+    const rows = Array.from(mentorFieldMap.values())
+      .sort((a,b)=> b.sessions - a.sessions || a.mentor.localeCompare(b.mentor,'ko') || a.field.localeCompare(b.field,'ko'));
+
+    byMentorEl.innerHTML = rows.map(r => `
+      <tr>
+        <td>${escapeHtml(r.mentor)}</td>
+        <td>${escapeHtml(r.field)}</td>
+        <td style="text-align:right">${r.sessions}회기</td>
+        <td style="text-align:right">${escapeHtml(minutesToText(r.minutes))}</td>
+      </tr>
+    `).join('') || `<tr><td colspan="4">-</td></tr>`;
+
+    const mentees = Array.from(menteeMap.entries()).sort((a,b)=> b[1]-a[1] || a[0].localeCompare(b[0],'ko'));
+    byMenteeEl.innerHTML = mentees.map(([name, c]) => `
+      <tr>
+        <td>${escapeHtml(name)}</td>
+        <td style="text-align:right">${c}회기</td>
+      </tr>
+    `).join('') || `<tr><td colspan="2">-</td></tr>`;
+
+    const pairs = Array.from(pairMap.entries()).map(([k,c]) => {
+      const [mentor, mentee] = k.split('||');
+      return { mentor, mentee, c };
+    }).sort((a,b)=> b.c-a.c || a.mentor.localeCompare(b.mentor,'ko') || a.mentee.localeCompare(b.mentee,'ko'));
+
+    byPairEl.innerHTML = pairs.map(p => `
+      <tr>
+        <td>${escapeHtml(p.mentor)}</td>
+        <td>${escapeHtml(p.mentee)}</td>
+        <td style="text-align:right">${p.c}회기</td>
+      </tr>
+    `).join('') || `<tr><td colspan="3">-</td></tr>`;
+  }
+
+  // ---------- print html ----------
+  function buildPrintHTML(allLogs, option){
+    const opt = {
+      mentor: (option.mentor || '전체').trim() || '전체',
+      field: (option.field || '전체').trim() || '전체',
+      subject: (option.subject || '전체').trim() || '전체'
+    };
+
+    const filtered = filterLogs(allLogs, opt);
+    if(!filtered.length){
+      return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>출력</title></head>
+      <body style="font-family:'Noto Sans KR',sans-serif;padding:24px">
+        <h3>출력할 일지가 없습니다</h3>
+        <p>관리자 출력 옵션을 확인해 주세요.</p>
+      </body></html>`;
+    }
+
+    const pages = assignSessions(filtered);
+
+    // ✅ A안: 출력 순서 고정 (멘토 → 분야 → 날짜 → 시작시간)
+    pages.sort((a,b) => {
+      const am = (a.mentor?.name || '').trim();
+      const bm = (b.mentor?.name || '').trim();
+      if (am !== bm) return am.localeCompare(bm, 'ko');
+      const af = (a.field || '미분류').trim();
+      const bf = (b.field || '미분류').trim();
+      if (af !== bf) return af.localeCompare(bf, 'ko');
+      const ad = (a.date || '');
+      const bd = (b.date || '');
+      if (ad !== bd) return ad.localeCompare(bd);
+      const as = (a.start || '');
+      const bs = (b.start || '');
+      return as.localeCompare(bs);
+    });
+
+    const totalTimeText = getTotalTime(pages);
+    const subjectText = (opt.field === '상주멘토링') ? '해당 없음' : opt.subject;
+
+    const css = `
+      @page { size:A4; margin:15mm; }
+      *{ box-sizing:border-box; }
+      body{ margin:0; font-family:'Noto Sans KR',sans-serif; color:#000; background:#fff; }
+      .page{ width:210mm; min-height:297mm; margin:0 auto; padding:20mm 15mm 15mm 15mm; page-break-after:always; }
+      .header{ text-align:center; margin-bottom:8mm; }
+      .header h1{ font-size:18px; margin:0; font-weight:800; }
+      .header h2{ font-size:22px; margin:4px 0 0 0; font-weight:800; letter-spacing:-.2px; }
+      table{ width:100%; border-collapse:collapse; font-size:13px; }
+      th, td{ border:1px solid #000; padding:6px; vertical-align:top; }
+      th{ background:#f5f5f5; text-align:center; width:20%; }
+      .section-space td{ height:28mm; }
+      .section-space-lg td{ height:42mm; }
+      .approval{ width:45%; margin-left:auto; margin-top:8mm; }
+      .approval th,.approval td{ text-align:center; }
+      .approval .head{ height:7mm; font-size:12px; width:40%; }
+      .approval .blank{ height:22mm; }
+      .footer{ margin-top:6mm; font-size:12px; }
+      .summary-wrap{ display:flex; flex-direction:column; justify-content:flex-start; padding-top:6mm; }
+      .summary-title{ font-size:22px; font-weight:900; margin:0 0 10mm 0; text-align:center; }
+      .summary-box{ width:78%; margin:0 auto; font-size:15px; }
+      .summary-box th,.summary-box td{ padding:12px; }
+      .summary-box th{ width:40%; }
+      .page:last-child{ page-break-after:auto; }
+    `;
+
+    const summaryPage = `
+      <div class="page">
+        <div class="summary-wrap">
+          <div class="summary-title">출력 요약</div>
+          <div class="summary-box">
+            <table>
+              <tr><th>멘토명</th><td>${escapeHtml(opt.mentor)}</td></tr>
+              <tr><th>출력 기준</th><td>${escapeHtml(opt.field)} / ${escapeHtml(subjectText)}</td></tr>
+              <tr><th>총 활동 회기</th><td>${pages.length}회기</td></tr>
+              <tr><th>총 누적시간</th><td>${escapeHtml(totalTimeText)}</td></tr>
+            </table>
+          </div>
+          <div class="footer" style="text-align:center;margin-top:12mm">※ 다음 페이지부터는 일지 출력본입니다.</div>
+        </div>
+      </div>
+    `;
+
+        // ✅ A안: 멘토 + 분야 기준 누적(분) 저장
+    const runningMap = new Map(); // key: "멘토||분야" -> 누적분
+
+    const bodyPages = pages.map((l) => {
+      const dateDot = formatDateDot(l.date);
+
+      // ✅ 멘토+분야 키 (분야 없으면 미분류)
+      const mentorKey = (l.mentor?.name || '').trim();
+      const fieldKey  = (l.field || '미분류').trim();
+      const key = `${mentorKey}||${fieldKey}`;
+
+      // ✅ 이번 회기 시간(분)
+      const thisMin = minutesBetween(l.start, l.end);
+
+      // ✅ 멘토+분야 별 누적(분)
+      const prevMin = runningMap.get(key) || 0;
+      const nextMin = prevMin + thisMin;
+      runningMap.set(key, nextMin);
+
+      // ✅ 이 페이지에 찍힐 누적시간 텍스트
+      const runningTotalText = minutesToText(nextMin);
+
+      const totalMinText = (l.total && String(l.total).trim()) ? l.total : (calcTotal(l.start,l.end) || '');
+      const mentorName = l.mentor?.name || '';
+      const menteeText = (Array.isArray(l.mentees)?l.mentees:[]).join(', ');
+      const placeText = l.place || '';
+      const fieldText = l.field || '';
+      const subjectLine = (l.field === '상주멘토링') ? '' : (l.subject ? ` / 과목: ${l.subject}` : '');
+      const fieldFull = fieldText ? `학력/분야: ${fieldText}${subjectLine}` : '';
+      const content = escapeHtml(l.content||'').replace(/\n/g,'<br>');
+      const reflection = escapeHtml(l.reflection||'').replace(/\n/g,'<br>');
+      const request = escapeHtml(l.request||'').replace(/\n/g,'<br>');
+      const nextPlan = escapeHtml(l.next||'');
+      const ratingStars = stars(l.rating||0);
+
+      return `
+        <div class="page">
+          <div class="header">
+            <h1>노원구학교밖청소년지원센터 꿈드림</h1>
+            <h2>멘토링 활동일지</h2>
+          </div>
+
+          <table>
+            <tr>
+              <th>활동회기</th><td>${l.session}회기</td>
+              <th>활동일시</th><td>${escapeHtml(dateDot)} · ${escapeHtml(l.start||'')} ~ ${escapeHtml(l.end||'')}<br><span style="font-size:12px">총 시간: ${escapeHtml(totalMinText)}</span></td>
+            </tr>
+            <tr><th>멘토명</th><td colspan="3">${escapeHtml(mentorName)}</td></tr>
+            <tr><th>멘티명</th><td colspan="3">${escapeHtml(menteeText)}</td></tr>
+            <tr><th>활동장소</th><td colspan="3">${escapeHtml(placeText)}</td></tr>
+            <tr><th>활동분야</th><td colspan="3">${escapeHtml(fieldFull)}</td></tr>
+
+            <tr class="section-space-lg"><th>활동내용</th><td colspan="3">${content}</td></tr>
+            <tr class="section-space"><th>멘티 근황 및<br>활동소감</th><td colspan="3">${reflection}
+              <div style="margin-top:6mm;font-size:12px"><b>오늘의 활동 만족도</b> : ${escapeHtml(ratingStars)}</div>
+            </td></tr>
+            <tr class="section-space"><th>다음 멘토링<br>일정 및 계획</th><td colspan="3">${nextPlan}</td></tr>
+            <tr class="section-space"><th>요청사항</th><td colspan="3">${request}</td></tr>
+
+            <tr>
+              <th>1365 봉사활동<br>시간 적립 내용</th>
+              <td colspan="3">
+                활동 시간: ${escapeHtml(totalMinText)}<br>
+                누적 시간: ${escapeHtml(runningTotalText)}
+              </td>
+            </tr>
+          </table>
+
+          <table class="approval">
+            <tr>
+              <th rowspan="2" style="width:20%">결재</th>
+              <th class="head">팀원</th>
+              <th class="head">팀장</th>
+            </tr>
+            <tr>
+              <td class="blank"></td>
+              <td class="blank"></td>
+            </tr>
+          </table>
+
+          <div class="footer" style="text-align:right;margin-top:6mm">담당자: __________________</div>
+        </div>
+      `;
+    }).join('');
+
+
+    return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>출력</title><style>${css}</style></head>
+      <body>
+        ${summaryPage}
+        ${bodyPages}
+      </body></html>`;
+  }
+
+  // ---------- preview modal ----------
+  const previewBackdrop = $('previewBackdrop');
+  const previewFrame = $('previewFrame');
+  let lastPreviewHTML = '';
+
+  function openPreview(html){
+    lastPreviewHTML = html;
+    previewFrame.srcdoc = html;
+    previewBackdrop.style.display = 'flex';
+    previewBackdrop.setAttribute('aria-hidden','false');
+  }
+  function closePreview(){
+    previewBackdrop.style.display = 'none';
+    previewBackdrop.setAttribute('aria-hidden','true');
+    previewFrame.srcdoc = '';
+    lastPreviewHTML = '';
+  }
+  function openPrintWindow(html){
+    const w = window.open('', '_blank');
+    if(!w) return alert('팝업이 차단되었습니다. 브라우저 팝업 차단을 해제해 주세요.');
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  }
+
+  // ---------- edit modal ----------
+  const editBackdrop = $('editBackdrop');
+  const editHint = $('editHint');
+  let editingIndex = null;
+
+  function parsePlaceToUI(placeStr){
+    const p = String(placeStr||'').trim();
+    if(p.startsWith('대면')){
+      const parts = p.split('/');
+      return { mode:'대면', detail:(parts[1]||'').trim() };
+    }
+    if(p === '비대면') return { mode:'비대면', detail:'' };
+    return { mode:'', detail:'' };
+  }
+  function syncEditPlaceUI(){
+    const mode = $('editPlaceMode').value;
+    $('editPlaceDetail').disabled = (mode !== '대면');
+    if(mode !== '대면') $('editPlaceDetail').value = '';
+  }
+  function syncEditFieldSubjectUI(){
+    const field = $('editField').value;
+    const isResident = (field === '상주멘토링');
+    $('editSubject').disabled = isResident;
+    if(isResident) $('editSubject').value = '';
+  }
+  function openEdit(index, log){
+    editingIndex = index;
+    editHint.textContent = `편집 대상: ${formatDateDot(log.date||'')} · ${(log.time||'')}`;
+    $('editMentorName').value = log.mentor?.name || '';
+    $('editMentorBirth').value = log.mentor?.birth || '';
+    $('editDate').value = log.date || '';
+    $('editStart').value = log.start || '';
+    $('editEnd').value = log.end || '';
+    $('editMentees').value = (Array.isArray(log.mentees)?log.mentees:[]).join(', ');
+
+    const pui = parsePlaceToUI(log.place);
+    $('editPlaceMode').value = pui.mode;
+    $('editPlaceDetail').value = pui.detail;
+
+    $('editField').value = log.field || '';
+    $('editSubject').value = log.subject || '';
+    $('editContent').value = log.content || '';
+    $('editReflection').value = log.reflection || '';
+    $('editRating').value = String(log.rating || 0);
+    $('editRequest').value = log.request || '';
+    $('editNext').value = log.next || '';
+
+    syncEditPlaceUI();
+    syncEditFieldSubjectUI();
+
+    // 체크리스트 동기화
+    if($('editMenteeSearch')) $('editMenteeSearch').value = '';
+    renderEditMenteeChecklist();
+
+    editBackdrop.style.display = 'flex';
+    editBackdrop.setAttribute('aria-hidden','false');
+  }
+  function closeEdit(){
+    editBackdrop.style.display = 'none';
+    editBackdrop.setAttribute('aria-hidden','true');
+    editingIndex = null;
+  }
+
+  // ---------- events ----------
+  document.addEventListener('DOMContentLoaded', () => {
+    // login
+    $('adminLogin').addEventListener('click', async () => {
+  const pw = ($('adminPw').value || '').trim();
+  if(pw !== ADMIN_PW) return alert('비밀번호 오류');
+
+  try {
+    window.__adminLogs = await window.loadAllSessions();
+    setLogs(window.__adminLogs);
+  } catch (e) {
+    console.error(e);
+    alert('Firestore 불러오기 실패');
+    return;
+  }
+
+  $('adminPanel').style.display = 'block';
+  $('adminListCard').style.display = 'block';
+  $('adminStatsCard').style.display = 'block';
+
+  populateMentorOptions();
+  currentFiltered = null;
+  renderAdminTable();
+  renderStats();
+});
+
+    // enter key login
+    $('adminPw').addEventListener('keydown', (e) => {
+      if(e.key === 'Enter') $('adminLogin').click();
+    });
+
+    // 조회하기: 테이블만 변경
+    $('btnSearchAdmin').addEventListener('click', () => {
+      const opt = getOutputOption();
+      const all = getLogs();
+      currentFiltered = filterLogs(all, opt);
+      renderAdminTable(currentFiltered);
+    });
+
+    // 새로고침: 옵션/테이블/통계 모두
+    $('btnRefreshAdmin').addEventListener('click', async () => {
+      try {
+        const fresh = await window.loadAllSessions();
+        setLogs(fresh);
+      } catch (e) {
+        console.error(e);
+        alert('Firestore 불러오기 실패');
+        return;
+      }
+      populateMentorOptions();
+      currentFiltered = null;
+      renderAdminTable();
+      renderStats();
+    });
+
+    // 삭제
+    $('btnClearAll').addEventListener('click', async () => {
+  if(!confirm('정말로 모든 일지를 삭제할까요? (되돌릴 수 없습니다)')) return;
+
+  // 1️⃣ Firestore 전체 삭제
+  await window.adminClearAllSessions();
+
+  // 2️⃣ 화면용 캐시 초기화
+  setLogs([]);
+  populateMentorOptions();
+  currentFiltered = null;
+
+  // 3️⃣ 화면 갱신
+  renderAdminTable([]);
+  renderStats();
+  alert('전체 삭제되었습니다.');
+});
+
+// 테이블 액션 (삭제/수정/단일 출력)
+$('adminTable').addEventListener('click', async (e) => {
+  const b = e.target.closest('button[data-action]');
+  if(!b) return;
+
+  const action = b.dataset.action;
+  const id = b.dataset.id;              // ✅ Firestore 문서 id
+  if(!id) return alert('문서 ID를 찾을 수 없습니다.');
+
+  const logs = getLogs();
+  const idx = logs.findIndex(x => x.id === id);
+  const l = logs[idx];
+  if(!l) return alert('일지를 찾을 수 없습니다.');
+
+  if(action === 'del'){
+    if(!confirm('이 일지를 삭제할까요?')) return;
+
+    // 1) Firestore에서 삭제
+    await window.adminDeleteSession(id);
+
+    // 2) Firestore에서 다시 불러와서 화면 갱신
+    const fresh = await window.loadAllSessions();
+    setLogs(fresh);
+
+    populateMentorOptions();
+
+    if(currentFiltered){
+      const opt = getOutputOption();
+      currentFiltered = filterLogs(fresh, opt);
+      renderAdminTable(currentFiltered);
+    } else {
+      renderAdminTable();
+    }
+
+    renderStats();
+    return;
+  }
+
+  if(action === 'edit'){
+    openEdit(idx, l);
+    return;
+  }
+
+  const html = buildPrintHTML([l], {
+    mentor: l.mentor?.name || '전체',
+    field: '전체',
+    subject: '전체'
+  });
+
+  if(action === 'single') openPreview(html);
+  if(action === 'singlePrint') openPrintWindow(html);
+});
+
+    // preview / print all
+    $('btnPreview').addEventListener('click', () => {
+      const opt = getOutputOption();
+      const logs = getLogs();
+      openPreview(buildPrintHTML(logs, opt));
+    });
+
+    $('btnPrintAll').addEventListener('click', () => {
+      const opt = getOutputOption();
+      const logs = getLogs();
+      openPrintWindow(buildPrintHTML(logs, opt));
+    });
+
+    // preview close
+    $('btnClosePreview').addEventListener('click', closePreview);
+    $('previewBackdrop').addEventListener('click', (e) => { if(e.target === previewBackdrop) closePreview(); });
+    window.addEventListener('keydown', (e) => {
+      if(e.key === 'Escape'){
+        if(previewBackdrop.style.display === 'flex') closePreview();
+        if(editBackdrop.style.display === 'flex') closeEdit();
+      }
+    });
+    $('btnPrintFromPreview').addEventListener('click', () => { if(lastPreviewHTML) openPrintWindow(lastPreviewHTML); });
+
+    // edit modal events
+    $('btnCloseEdit').addEventListener('click', closeEdit);
+    $('btnCancelEdit').addEventListener('click', closeEdit);
+    editBackdrop.addEventListener('click', (e) => { if(e.target === editBackdrop) closeEdit(); });
+
+    $('editStart').addEventListener('input', () => {
+      const digits = $('editStart').value.replace(/\D/g,'');
+      if(digits.length === 4) $('editStart').value = normalizeTime(digits);
+    });
+    $('editEnd').addEventListener('input', () => {
+      const digits = $('editEnd').value.replace(/\D/g,'');
+      if(digits.length === 4) $('editEnd').value = normalizeTime(digits);
+    });
+    $('editPlaceMode').addEventListener('change', syncEditPlaceUI);
+    $('editField').addEventListener('change', () => { syncEditFieldSubjectUI(); renderEditMenteeChecklist(); });
+    $('editSubject').addEventListener('change', renderEditMenteeChecklist);
+    $('editMenteeSearch').addEventListener('input', renderEditMenteeChecklist);
+
+    $('btnEditMenteeAll').addEventListener('click', () => {
+      const field = $('editField')?.value || "";
+      const subject = (field === '상주멘토링') ? "" : ($('editSubject')?.value || "");
+      const allowed = Array.from(getAllowedMenteeSet(field, subject));
+      const q = getEditSearchQuery();
+      const visible = q ? allowed.filter(n => n.includes(q)) : allowed;
+      const selected = new Set(parseMentees($('editMentees')?.value || ""));
+      for(const n of visible) selected.add(n);
+      $('editMentees').value = Array.from(selected).join(', ');
+      renderEditMenteeChecklist();
+    });
+
+    $('btnEditMenteeClear').addEventListener('click', () => {
+      $('editMentees').value = '';
+      renderEditMenteeChecklist();
+    });
+
+    $('btnSaveEdit').addEventListener('click', async () => {
+      if(editingIndex == null) return;
+
+      const mentorName = $('editMentorName').value.trim();
+      const mentorBirth = $('editMentorBirth').value.trim();
+      if(!mentorName) return alert('멘토 이름을 입력해 주세요.');
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(mentorBirth)) return alert('멘토 생년월일은 YYYY-MM-DD 형식으로 입력해 주세요.');
+
+      const date = $('editDate').value.trim();
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) return alert('활동 날짜는 YYYY-MM-DD 형식으로 입력해 주세요.');
+
+      const s = normalizeTime($('editStart').value);
+      const e = normalizeTime($('editEnd').value);
+      if(!/^\d{2}:\d{2}$/.test(s) || !/^\d{2}:\d{2}$/.test(e)) return alert('시간은 1530 또는 15:30 형식으로 입력해 주세요.');
+
+      const mentees = parseMentees($('editMentees').value);
+      if(!mentees.length) return alert('멘티를 1명 이상 선택해 주세요.');
+
+      // ✅ 정해진 명단(체크리스트) 외 입력 방지
+      const fieldNow = ($('editField')?.value || '').trim();
+      const subjectNow = (fieldNow === '상주멘토링') ? '' : (($('editSubject')?.value || '').trim());
+      const allowed = getAllowedMenteeSet(fieldNow, subjectNow);
+      const invalid = mentees.filter(n => !allowed.has(n));
+      if(invalid.length){
+        return alert(`명단에 없는 멘티가 포함되어 있어요: ${invalid.join(', ')}\n체크리스트에서 다시 선택해 주세요.`);
+      }
+
+      const field = $('editField').value.trim();
+      const subject = $('editSubject').value.trim();
+      const normalizedSubject = (field === '상주멘토링') ? '' : subject;
+
+      const mode = $('editPlaceMode').value.trim();
+      const detail = $('editPlaceDetail').value.trim();
+      const place = mode ? (mode === '대면' ? `대면 / ${detail || ''}`.trim() : '비대면') : '';
+
+      const total = calcTotal(s, e) || '0시간 0분';
+
+      const updated = {
+        mentor: { name: mentorName, birth: mentorBirth },
+        date,
+        start: s,
+        end: e,
+        time: `${s} ~ ${e}`,
+        total,
+        mentees,
+        place,
+        field: field || '',
+        subject: normalizedSubject || '',
+        content: $('editContent').value || '',
+        reflection: $('editReflection').value || '',
+        rating: parseInt($('editRating').value || '0', 10) || 0,
+        request: $('editRequest').value || '',
+        next: $('editNext').value || ''
+      };
+
+      const logs = getLogs();
+      const current = logs[editingIndex];
+      if(!current) return alert('일지를 찾을 수 없습니다.');
+      const id = current.id;
+      if(!id) return alert('문서 ID를 찾을 수 없습니다.');
+
+      try {
+        await window.adminUpdateSession(id, updated);
+      } catch (e) {
+        console.error(e);
+        alert('Firestore 수정 실패');
+        return;
+      }
+
+      // 최신 데이터 다시 불러오기
+      let fresh = [];
+      try {
+        fresh = await window.loadAllSessions();
+      } catch (e) {
+        console.error(e);
+        alert('Firestore 불러오기 실패');
+        return;
+      }
+      setLogs(fresh);
+
+      populateMentorOptions();
+      if(currentFiltered){
+        const opt = getOutputOption();
+        currentFiltered = filterLogs(fresh, opt);
+        renderAdminTable(currentFiltered);
+      } else {
+        renderAdminTable();
+      }
+      renderStats();
+      closeEdit();
+      alert('수정되었습니다');
+    });
+  });
+})();
+</script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+ import { 
+  getFirestore, collection, addDoc, getDocs,
+  doc, deleteDoc, updateDoc, writeBatch
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCQ_puEGRMy3HEKe1WozrJ2TgLVT2OG4oE",
+    authDomain: "mentoring-4287b.firebaseapp.com",
+    projectId: "mentoring-4287b",
+    storageBucket: "mentoring-4287b.firebasestorage.app",
+    messagingSenderId: "718576579632",
+    appId: "1:718576579632:web:04f51457d9a6a1febae9f5"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.saveSession = async (data) => {
+    await addDoc(collection(db, "sessions"), data);
+  };
+
+  window.loadAllSessions = async () => {
+    const snap = await getDocs(collection(db, "sessions"));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  };
+ // ✅ 1개 삭제
+window.adminDeleteSession = async (id) => {
+  await deleteDoc(doc(db, "sessions", id));
+};
+
+// ✅ 1개 수정
+window.adminUpdateSession = async (id, data) => {
+  await updateDoc(doc(db, "sessions", id), data);
+};
+
+// ✅ 전체 삭제(진짜 다 지움)
+window.adminClearAllSessions = async () => {
+  const snap = await getDocs(collection(db, "sessions"));
+  const batch = writeBatch(db);
+  snap.forEach(d => batch.delete(d.ref));
+  await batch.commit();
+};
+ 
+</script>
+</body>
+</html>
