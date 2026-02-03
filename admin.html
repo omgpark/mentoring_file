@@ -114,26 +114,80 @@
 </nav>
 
 <main>
-  <section id="admin" class="active">
-    <div class="card">
-      <div class="admin-guide" role="note" aria-label="관리자 전용 안내">
-        <b>안내</b><br/>
-        이 페이지는 관리자 전용 기능을 제공합니다.<br/>
-        일반 멘토는 <a href="index.html" class="admin-guide-link">메인 페이지</a>에서 출석 및 활동일지를 이용해 주세요.
-      </div>
+<!-- 관리자 로그인 -->
+<div class="card" id="loginCard">
+  <div class="admin-guide">
+    <b>안내</b><br/>
+    이 페이지는 관리자 전용입니다.<br/>
+    일반 멘토는 메인 페이지를 이용해 주세요.
+  </div>
 
-      <label for="adminEmail">관리자 이메일</label>
-      <input type="email" id="adminEmail" placeholder="예) admin@example.com" autocomplete="username" />
+  <label>관리자 이메일</label>
+  <input id="adminEmail" type="email" placeholder="admin@email.com" />
 
-      <label for="adminPw">관리자 비밀번호</label>
-      <input type="password" id="adminPw" placeholder="비밀번호 입력" autocomplete="current-password" />
+  <label>비밀번호</label>
+  <input id="adminPw" type="password" />
 
-      <button class="btn primary" id="adminLogin" type="button">로그인</button>
-      <button class="btn ghost" id="adminLogout" type="button" style="display:none">로그아웃</button>
+  <button class="btn primary" id="btnLogin">로그인</button>
+</div>
 
-      <div class="muted" style="margin-top:10px">* 관리자 계정으로 로그인해야 조회/수정/출력 기능이 보입니다.</div>
-    </div>
+<!-- 관리자 패널 -->
+<div class="card" id="adminPanel" style="display:none">
+  <b>관리자 로그인 성공</b>
+  <p>이제 통계 / 조회 / 수정 / 삭제 기능 사용 가능</p>
+  <button class="btn" id="btnLogout">로그아웃</button>
+</div>
 
+</main>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
+  from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+/* 🔥 네 firebaseConfig 그대로 유지 */
+const firebaseConfig = {
+  apiKey: "네값",
+  authDomain: "네값",
+  projectId: "네값"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+getFirestore(app);
+
+// 로그인
+btnLogin.onclick = async () => {
+  try{
+    await signInWithEmailAndPassword(
+      auth,
+      adminEmail.value,
+      adminPw.value
+    );
+  }catch(e){
+    alert("로그인 실패");
+  }
+};
+
+// 로그인 상태 감지
+onAuthStateChanged(auth, user => {
+  if(user){
+    loginCard.style.display = "none";
+    adminPanel.style.display = "block";
+  }else{
+    loginCard.style.display = "block";
+    adminPanel.style.display = "none";
+  }
+});
+
+// 로그아웃
+btnLogout.onclick = () => signOut(auth);
+</script>
+</body>
+</html>
+ 
     <div class="card" id="adminPanel" style="display:none">
       <h3 style="margin:0 0 8px 0">출력 옵션</h3>
 
