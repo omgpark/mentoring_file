@@ -594,28 +594,29 @@
 
     const menteeTableEl = $('menteeConfigTable');
     if (menteeTableEl) {
-      menteeTableEl.innerHTML = mentees.length
-        ? mentees.map((m, i) => {
-            const isActive = m.active !== false;
-            const statusBadge = isActive
-              ? `<span style="color:#1a7f37;font-weight:700">활성</span>`
-              : `<span style="color:#b00020;font-weight:700">비활성</span>`;
-            const toggleClass = isActive ? 'btn-sm danger' : 'btn-sm primary';
-            const toggleLabel = isActive ? '비활성화' : '활성화';
-            return `<tr style="${isActive ? '' : 'opacity:.55'}">
-              <td>${escapeHtml(m.name)}</td>
-              <td>${escapeHtml(m.field||'')}</td>
-              <td>${escapeHtml(m.subject||'')}</td>
-              <td style="text-align:center">${statusBadge}</td>
-              <td style="white-space:nowrap">
-                <div class="actions" style="flex-wrap:nowrap">
-                  <button class="${toggleClass}" type="button" data-toggle-mentee="${i}">${toggleLabel}</button>
-                  <button class="btn-sm danger" type="button" data-remove-mentee="${i}">삭제</button>
-                </div>
-              </td>
-            </tr>`;
-          }).join('')
-        : `<tr><td colspan="5" style="text-align:center;color:#888">명단이 없습니다.</td></tr>`;
+      if (!mentees.length) {
+        menteeTableEl.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#888">명단이 없습니다.</td></tr>';
+      } else {
+        menteeTableEl.innerHTML = mentees.map((m, i) => {
+          const isActive = m.active !== false;
+          const badge = isActive
+            ? '<span style="color:#1a7f37;font-weight:700">활성</span>'
+            : '<span style="color:#b00020;font-weight:700">비활성</span>';
+          const tClass = isActive ? 'btn-sm danger' : 'btn-sm primary';
+          const tLabel = isActive ? '비활성화' : '활성화';
+          const rowStyle = isActive ? '' : ' style="opacity:.55"';
+          return '<tr' + rowStyle + '>' +
+            '<td>' + escapeHtml(m.name) + '</td>' +
+            '<td>' + escapeHtml(m.field || '') + '</td>' +
+            '<td>' + escapeHtml(m.subject || '') + '</td>' +
+            '<td style="text-align:center">' + badge + '</td>' +
+            '<td style="white-space:nowrap"><div class="actions" style="flex-wrap:nowrap">' +
+              '<button class="' + tClass + '" type="button" data-toggle-mentee="' + i + '">' + tLabel + '</button>' +
+              '<button class="btn-sm danger" type="button" data-remove-mentee="' + i + '">삭제</button>' +
+            '</div></td>' +
+          '</tr>';
+        }).join('');
+      }
     }
   }
 
@@ -1505,14 +1506,25 @@ $('adminTable').addEventListener('click', async (e) => {
       renderEditMenteeChecklist();
     });
     $('menteeConfigTable')?.addEventListener('click', async (e) => {
+      const toggleBtn = e.target.closest('[data-toggle-mentee]');
+      if (toggleBtn) {
+        const idx = parseInt(toggleBtn.dataset.toggleMentee, 10);
+        const cfg = JSON.parse(JSON.stringify(__currentConfig || DEFAULT_CONFIG));
+        const m = (cfg.mentees || [])[idx];
+        if (!m) return;
+        m.active = m.active === false ? true : false;
+        await saveCurrentConfig(cfg);
+        applyConfig(cfg);
+        return;
+      }
       const btn = e.target.closest('[data-remove-mentee]');
       if(!btn) return;
       const idx = parseInt(btn.dataset.removeMentee, 10);
       const cfg = JSON.parse(JSON.stringify(__currentConfig || DEFAULT_CONFIG));
       const m = (cfg.mentees || [])[idx];
       if(!m) return;
-      if(!confirm(`"${m.name}" 멘티를 삭제할까요?`)) return;
-      cfg.mentees = (cfg.mentees || []).filter((_, i) => i !== idx);
+      if(!confirm('"' + m.name + '" 멘티를 삭제할까요?')) return;
+      cfg.mentees = (cfg.mentees || []).filter(function(_, i){ return i !== idx; });
       await saveCurrentConfig(cfg);
       applyConfig(cfg);
     });
