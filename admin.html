@@ -105,7 +105,6 @@
         <button class="btn-sm primary" id="adminLogin" type="button">로그인</button>
         <button class="btn-sm" id="adminLogout" type="button" style="display:none">로그아웃</button>
       </div>
-      <div class="muted" id="adminAuthHint" style="margin-top:10px">※ Firestore 보안 규칙 때문에 관리자 기능은 Firebase 로그인 후에만 사용할 수 있어요.</div>
     </div>
 
     <div class="card" id="adminPanel" style="display:none">
@@ -114,31 +113,20 @@
       <div class="row">
         <div>
           <label for="optMentor">멘토명</label>
-          <input id="optMentor" list="mentorList" placeholder="멘토명 입력/선택 (비우면 전체)" />
-          <datalist id="mentorList"></datalist>
+          <select id="optMentor">
+            <option value="전체">전체</option>
+          </select>
         </div>
         <div>
           <label for="optField">분야</label>
           <select id="optField">
             <option value="전체">전체</option>
-            <option value="고졸">고졸</option>
-            <option value="중졸">중졸</option>
-            <option value="초졸">초졸</option>
-            <option value="기초학습">기초학습</option>
-            <option value="상주멘토링">상주멘토링</option>
-            <option value="특강">특강</option>
           </select>
         </div>
         <div>
           <label for="optSubject">과목</label>
           <select id="optSubject">
             <option value="전체">전체</option>
-            <option value="국어">국어</option>
-            <option value="영어">영어</option>
-            <option value="수학">수학</option>
-            <option value="사회">사회</option>
-            <option value="과학">과학</option>
-            <option value="한국사">한국사</option>
           </select>
         </div>
       </div>
@@ -179,8 +167,59 @@
       </div>
     </div>
 
+    <div class="card" id="adminConfigCard" style="display:none">
+      <h3 style="margin:0 0 14px 0">설정 관리</h3>
+
+      <div style="border-bottom:1px solid #eee;padding-bottom:14px;margin-bottom:14px">
+        <h4 style="margin:0 0 8px 0;font-size:13px;color:#555">분야 목록</h4>
+        <div id="fieldsList" style="display:flex;gap:6px;flex-wrap:wrap;min-height:32px;margin-bottom:10px"></div>
+        <div style="display:flex;gap:8px;max-width:360px">
+          <input id="newFieldInput" placeholder="새 분야 입력" style="flex:1" />
+          <button class="btn-sm primary" id="btnAddField" type="button">추가</button>
+        </div>
+      </div>
+
+      <div style="border-bottom:1px solid #eee;padding-bottom:14px;margin-bottom:14px">
+        <h4 style="margin:0 0 8px 0;font-size:13px;color:#555">과목 목록</h4>
+        <div id="subjectsList" style="display:flex;gap:6px;flex-wrap:wrap;min-height:32px;margin-bottom:10px"></div>
+        <div style="display:flex;gap:8px;max-width:360px">
+          <input id="newSubjectInput" placeholder="새 과목 입력" style="flex:1" />
+          <button class="btn-sm primary" id="btnAddSubject" type="button">추가</button>
+        </div>
+      </div>
+
+      <div>
+        <h4 style="margin:0 0 8px 0;font-size:13px;color:#555">멘티 명단</h4>
+        <div style="overflow:auto;max-height:320px;margin-bottom:10px">
+          <table class="basic">
+            <thead><tr><th>이름</th><th>분야</th><th>과목</th><th>상태</th><th>관리</th></tr></thead>
+            <tbody id="menteeConfigTable"></tbody>
+          </table>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+          <input id="newMenteeName" placeholder="멘티 이름" style="max-width:120px" />
+          <select id="newMenteeField" style="max-width:130px"><option value="">분야 선택</option></select>
+          <select id="newMenteeSubject" style="max-width:130px"><option value="">과목 선택</option></select>
+          <button class="btn-sm primary" id="btnAddMentee" type="button">추가</button>
+        </div>
+      </div>
+    </div>
+
     <div class="card" id="adminStatsCard" style="display:none">
-      <div class="muted" style="margin-top:0">※ 저장된 활동일지를 기준으로 자동 집계됩니다. (멘티는 쉼표/줄바꿈으로 입력된 이름을 기준으로 1회기씩 카운트)</div>
+      <div class="muted" style="margin-top:0">※ 저장된 활동일지를 기준으로 자동 집계됩니다. (멘티는 이름 기준으로 1회기씩 카운트)</div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;align-items:flex-end">
+        <div>
+          <label style="font-size:12px;font-weight:700;display:block;margin-bottom:4px;margin-top:0">시작일</label>
+          <input type="date" id="statsFrom" style="padding:6px 10px;font-size:13px;margin-top:0;width:auto" />
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:700;display:block;margin-bottom:4px;margin-top:0">종료일</label>
+          <input type="date" id="statsTo" style="padding:6px 10px;font-size:13px;margin-top:0;width:auto" />
+        </div>
+        <button class="btn-sm primary" id="btnStatsApply" type="button">적용</button>
+        <button class="btn-sm" id="btnStatsReset" type="button">초기화</button>
+      </div>
 
       <div style="margin-top:12px; overflow:auto">
         <table class="basic">
@@ -189,25 +228,17 @@
       </div>
 
       <div style="margin-top:12px; overflow:auto">
-        <h4 style="margin:0 0 6px 0">멘토 · 분야별 회기</h4>
+        <h4 style="margin:0 0 6px 0">멘토 · 분야 · 과목별 회기</h4>
         <table class="basic">
-          <thead><tr><th>멘토</th><th>분야</th><th>회기</th><th>누적 시간</th></tr></thead>
+          <thead><tr><th>멘토</th><th>분야</th><th>과목</th><th>회기</th></tr></thead>
           <tbody id="statsByMentor"></tbody>
         </table>
       </div>
 
       <div style="margin-top:12px; overflow:auto">
-        <h4 style="margin:0 0 6px 0">멘티별 출석(회기)</h4>
+        <h4 style="margin:0 0 6px 0">멘토 · 멘티 · 과목별 회기</h4>
         <table class="basic">
-          <thead><tr><th>멘티</th><th>총 회기</th></tr></thead>
-          <tbody id="statsByMentee"></tbody>
-        </table>
-      </div>
-
-      <div style="margin-top:12px; overflow:auto">
-        <h4 style="margin:0 0 6px 0">멘토-멘티별 출석(회기)</h4>
-        <table class="basic">
-          <thead><tr><th>멘토</th><th>멘티</th><th>회기</th></tr></thead>
+          <thead><tr><th>멘토</th><th>멘티</th><th>과목</th><th>회기</th></tr></thead>
           <tbody id="statsByPair"></tbody>
         </table>
       </div>
@@ -278,22 +309,11 @@
         <label style="font-weight:700;font-size:13px">활동 분야</label>
         <select id="editField">
           <option value="">선택</option>
-          <option value="고졸">고졸</option>
-          <option value="중졸">중졸</option>
-          <option value="초졸">초졸</option>
-          <option value="기초학습">기초학습</option>
-          <option value="상주멘토링">상주멘토링</option>
         </select>
 
         <label style="font-weight:700;font-size:13px">과목</label>
         <select id="editSubject">
           <option value="">선택</option>
-          <option value="국어">국어</option>
-          <option value="영어">영어</option>
-          <option value="수학">수학</option>
-          <option value="사회">사회</option>
-          <option value="과학">과학</option>
-          <option value="한국사">한국사</option>
         </select>
 
         <label style="font-weight:700;font-size:13px">활동 내용</label>
@@ -436,59 +456,175 @@
 }
 
   // =========================
-  // 멘티 체크리스트 (정해진 명단만)
+  // 멘티/분야/과목 설정 (Firestore에서 동적 로딩, 초기값은 DEFAULT_CONFIG)
   // =========================
-  const MENTEES = [
-    // ✅ 여기만 네 멘티로 바꾸면 돼요
-  { name: "임경환", field: "고졸", subject: "국어" },
-  { name: "조민희", field: "고졸", subject: "국어" },
-  { name: "정제헌", field: "고졸", subject: "국어" },
-  { name: "홍주현", field: "고졸", subject: "국어" },
-  { name: "이건", field: "고졸", subject: "국어" },  
-  { name: "김형준", field: "기초학습", subject: "수학" },
-  { name: "박수빈", field: "기초학습", subject: "수학" },
-  { name: "박소민", field: "기초학습", subject: "수학" },
-  { name: "이혜원", field: "기초학습", subject: "수학" },
-  { name: "유지수", field: "기초학습", subject: "수학" },
-  { name: "정태성", field: "기초학습", subject: "수학" },
-  { name: "양민철", field: "기초학습", subject: "수학" },
-  { name: "김서희", field: "기초학습", subject: "수학" },
-  { name: "고은사랑", field: "고졸", subject: "수학" },
-  { name: "이시은", field: "고졸", subject: "수학" },
-  { name: "윤여운", field: "고졸", subject: "수학" },
-  { name: "홍주현", field: "고졸", subject: "수학" },  
-  { name: "김형준", field: "고졸", subject: "영어" },
-  { name: "김서희", field: "고졸", subject: "영어" },
-  { name: "서예령", field: "고졸", subject: "영어" },
-  { name: "조민우", field: "고졸", subject: "영어" },
-  { name: "정태성", field: "고졸", subject: "영어" },
-  { name: "양민철", field: "고졸", subject: "영어" }, 
-  { name: "정제헌", field: "고졸", subject: "영어" },
-  { name: "이슬", field: "기초학습", subject: "영어" },   
-  { name: "양민철", field: "기초학습", subject: "영어" },
-  { name: "고수진", field: "고졸", subject: "한국사" },
-  { name: "신현주", field: "고졸", subject: "한국사" },
-  { name: "이정원", field: "고졸", subject: "한국사" },
-  { name: "유지수", field: "고졸", subject: "한국사" },
-  { name: "임경환", field: "고졸", subject: "한국사" },
-  { name: "유시은", field: "고졸", subject: "한국사" },
-  { name: "장은호", field: "고졸", subject: "한국사" },
-  { name: "장희재", field: "고졸", subject: "한국사" },
-  { name: "조민희", field: "고졸", subject: "한국사" },
-  { name: "김형준", field: "고졸", subject: "과학" },
-  { name: "이혜원", field: "고졸", subject: "과학" },
-  { name: "이시은", field: "고졸", subject: "과학" },
-  { name: "조민우", field: "고졸", subject: "과학" },
-  { name: "김태연", field: "고졸", subject: "과학" },
-  { name: "윤여운", field: "고졸", subject: "과학" },
-  { name: "정윤서", field: "고졸", subject: "과학" },
-  { name: "김영우", field: "중졸", subject: "수학" },
-  { name: "김수아", field: "중졸", subject: "수학" },
-  { name: "송지은", field: "중졸", subject: "수학" },
-  { name: "최시언", field: "초졸", subject: "수학" } 
-  ];
+  const DEFAULT_CONFIG = {
+    fields: ['고졸','중졸','초졸','기초학습','상주멘토링','특강'],
+    subjects: ['국어','영어','수학','사회','과학','한국사'],
+    mentees: [
+      {name:"임경환",field:"고졸",subject:"국어"},
+      {name:"조민희",field:"고졸",subject:"국어"},
+      {name:"홍주현",field:"고졸",subject:"국어"},
+      {name:"정제헌",field:"고졸",subject:"국어"},
+      {name:"이건",field:"고졸",subject:"국어"},
+      {name:"김형준",field:"기초학습",subject:"수학"},
+      {name:"박수빈",field:"기초학습",subject:"수학"},
+      {name:"박소민",field:"기초학습",subject:"수학"},
+      {name:"이혜원",field:"기초학습",subject:"수학"},
+      {name:"유지수",field:"기초학습",subject:"수학"},
+      {name:"정태성",field:"기초학습",subject:"수학"},
+      {name:"양민철",field:"기초학습",subject:"수학"},
+      {name:"김서희",field:"기초학습",subject:"수학"},     
+      {name:"김서희",field:"기초학습",subject:"영어"},
+      {name:"김민영",field:"기초학습",subject:"영어"},
+      {name:"이슬",field:"기초학습",subject:"영어"},
+      {name:"양민철",field:"기초학습",subject:"영어"},
+      {name:"고은사랑",field:"고졸",subject:"수학"},
+      {name:"이시은",field:"고졸",subject:"수학"},
+      {name:"윤여운",field:"고졸",subject:"수학"},
+      {name:"홍주현",field:"고졸",subject:"수학"},
+      {name:"이수진",field:"고졸",subject:"수학"},
+      {name:"김형준",field:"고졸",subject:"수학"},
+      {name:"박소민",field:"고졸",subject:"수학"},
+      {name:"이강우",field:"고졸",subject:"수학"},
+      {name:"이태규",field:"고졸",subject:"수학"},
+      {name:"남규비",field:"고졸",subject:"수학"},
+      {name:"조민우",field:"고졸",subject:"수학"},
+      {name:"최윤지",field:"고졸",subject:"수학"},
+      {name:"김민서",field:"고졸",subject:"사회"},
+      {name:"최기준",field:"고졸",subject:"사회"},
+      {name:"장은호",field:"고졸",subject:"사회"},
+      {name:"조민희",field:"고졸",subject:"사회"},
+      {name:"조민우",field:"고졸",subject:"사회"},
+      {name:"김형준",field:"고졸",subject:"영어"},
+      {name:"김서희",field:"고졸",subject:"영어"},
+      {name:"서예령",field:"고졸",subject:"영어"},
+      {name:"조민우",field:"고졸",subject:"영어"},
+      {name:"정태성",field:"고졸",subject:"영어"},
+      {name:"양민철",field:"고졸",subject:"영어"},
+      {name:"정제헌",field:"고졸",subject:"영어"},
+      {name:"김형준",field:"고졸",subject:"과학"},
+      {name:"이혜원",field:"고졸",subject:"과학"},
+      {name:"이시은",field:"고졸",subject:"과학"},
+      {name:"조민우",field:"고졸",subject:"과학"},
+      {name:"김태연",field:"고졸",subject:"과학"},
+      {name:"윤여운",field:"고졸",subject:"과학"},
+      {name:"정윤서",field:"고졸",subject:"과학"},
+      {name:"박종민",field:"고졸",subject:"과학"},
+      {name:"전소현",field:"고졸",subject:"과학"},
+      {name:"조민희",field:"고졸",subject:"과학"},
+      {name:"이수진",field:"고졸",subject:"과학"},
+      {name:"박소민",field:"고졸",subject:"과학"},
+      {name:"정윤서",field:"고졸",subject:"과학"},
+      {name:"고수진",field:"고졸",subject:"한국사"},
+      {name:"신현주",field:"고졸",subject:"한국사"},
+      {name:"이정원",field:"고졸",subject:"한국사"},
+      {name:"유지수",field:"고졸",subject:"한국사"},
+      {name:"임경환",field:"고졸",subject:"한국사"},
+      {name:"유시은",field:"고졸",subject:"한국사"},
+      {name:"장은호",field:"고졸",subject:"한국사"},
+      {name:"장희재",field:"고졸",subject:"한국사"},
+      {name:"조민희",field:"고졸",subject:"한국사"},
+      {name:"박종민",field:"고졸",subject:"한국사"},
+      {name:"김민서",field:"고졸",subject:"한국사"},
+      {name:"조민우",field:"고졸",subject:"한국사"},
+      {name:"정서영",field:"고졸",subject:"한국사"},
+      {name:"정윤서",field:"고졸",subject:"한국사"},
+      {name:"이혜원",field:"고졸",subject:"한국사"},
+      {name:"김영우",field:"중졸",subject:"수학"},
+      {name:"김수아",field:"중졸",subject:"수학"},
+      {name:"송지은",field:"중졸",subject:"수학"},
+      {name:"윤준서",field:"중졸",subject:"수학"},
+      {name:"강윤슬",field:"중졸",subject:"수학"},
+      {name:"김우현",field:"중졸",subject:"수학"},
+      {name:"최시언",field:"초졸",subject:"수학"}
+      {name:"김우준",field:"초졸",subject:"영어"}
+    ]
+  };
+
+  let MENTEES = DEFAULT_CONFIG.mentees.slice();
+  let ALL_PRESET_NAME_SET = new Set();
+  let __currentConfig = null;
 
   function normalize(v){ return (v || '').trim(); }
+
+  function populateSelect(id, values, firstOpt) {
+    const sel = $(id);
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = `<option value="${escapeHtml(firstOpt.value)}">${escapeHtml(firstOpt.label)}</option>` +
+      values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+    if (values.includes(cur)) sel.value = cur;
+  }
+
+  function applyConfig(cfg) {
+    __currentConfig = cfg || DEFAULT_CONFIG;
+    const c = __currentConfig;
+    MENTEES = Array.isArray(c.mentees) ? c.mentees : DEFAULT_CONFIG.mentees;
+    ALL_PRESET_NAME_SET = new Set(uniqueNames(MENTEES));
+    const fields = Array.isArray(c.fields) ? c.fields : DEFAULT_CONFIG.fields;
+    const subjects = Array.isArray(c.subjects) ? c.subjects : DEFAULT_CONFIG.subjects;
+    populateSelect('optField', fields, { value: '전체', label: '전체' });
+    populateSelect('optSubject', subjects, { value: '전체', label: '전체' });
+    populateSelect('editField', fields, { value: '', label: '선택' });
+    populateSelect('editSubject', subjects, { value: '', label: '선택' });
+    populateSelect('newMenteeField', fields, { value: '', label: '분야 선택' });
+    populateSelect('newMenteeSubject', subjects, { value: '', label: '과목 선택' });
+    renderConfigCard();
+  }
+
+  function renderConfigCard() {
+    const c = __currentConfig || DEFAULT_CONFIG;
+    const fields = Array.isArray(c.fields) ? c.fields : DEFAULT_CONFIG.fields;
+    const subjects = Array.isArray(c.subjects) ? c.subjects : DEFAULT_CONFIG.subjects;
+    const mentees = Array.isArray(c.mentees) ? c.mentees : [];
+
+    const fieldsEl = $('fieldsList');
+    if (fieldsEl) {
+      fieldsEl.innerHTML = fields.map(f =>
+        `<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#eef2ff;border-radius:20px;font-size:13px">${escapeHtml(f)}<button type="button" data-remove-field="${escapeHtml(f)}" style="border:none;background:none;cursor:pointer;color:#b00020;font-size:16px;line-height:1;padding:0 2px">×</button></span>`
+      ).join('');
+    }
+
+    const subjectsEl = $('subjectsList');
+    if (subjectsEl) {
+      subjectsEl.innerHTML = subjects.map(s =>
+        `<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#f0fff4;border-radius:20px;font-size:13px">${escapeHtml(s)}<button type="button" data-remove-subject="${escapeHtml(s)}" style="border:none;background:none;cursor:pointer;color:#b00020;font-size:16px;line-height:1;padding:0 2px">×</button></span>`
+      ).join('');
+    }
+
+    const menteeTableEl = $('menteeConfigTable');
+    if (menteeTableEl) {
+      menteeTableEl.innerHTML = mentees.length
+        ? mentees.map((m, i) => {
+            const isActive = m.active !== false;
+            const statusBadge = isActive
+              ? `<span style="color:#1a7f37;font-weight:700">활성</span>`
+              : `<span style="color:#b00020;font-weight:700">비활성</span>`;
+            const toggleClass = isActive ? 'btn-sm danger' : 'btn-sm primary';
+            const toggleLabel = isActive ? '비활성화' : '활성화';
+            return `<tr style="${isActive ? '' : 'opacity:.55'}">
+              <td>${escapeHtml(m.name)}</td>
+              <td>${escapeHtml(m.field||'')}</td>
+              <td>${escapeHtml(m.subject||'')}</td>
+              <td style="text-align:center">${statusBadge}</td>
+              <td style="white-space:nowrap">
+                <div class="actions" style="flex-wrap:nowrap">
+                  <button class="${toggleClass}" type="button" data-toggle-mentee="${i}">${toggleLabel}</button>
+                  <button class="btn-sm danger" type="button" data-remove-mentee="${i}">삭제</button>
+                </div>
+              </td>
+            </tr>`;
+          }).join('')
+        : `<tr><td colspan="5" style="text-align:center;color:#888">명단이 없습니다.</td></tr>`;
+    }
+  }
+
+  async function saveCurrentConfig(cfg) {
+    __currentConfig = cfg;
+    try { await window.saveConfig(cfg); }
+    catch (e) { console.error('Config save failed', e); alert('설정 저장 실패'); }
+  }
 
   function filterMentees(field, subject){
     const f = normalize(field);
@@ -511,9 +647,6 @@
     }
     return out;
   }
-
-  // ✅ 전체(모든 과목/분야) '정해진 멘티' 이름 Set (추가 인원 판별용)
-  const ALL_PRESET_NAME_SET = new Set(uniqueNames(MENTEES));
 
   function getEditSearchQuery(){
     const q = $('editMenteeSearch')?.value || '';
@@ -565,11 +698,12 @@
   function populateMentorOptions(){
     const logs = getLogs();
     const names = Array.from(new Set(logs.map(l => l?.mentor?.name).filter(Boolean))).sort((a,b)=>String(a).localeCompare(String(b),'ko'));
-    const dl = $('mentorList');
-    if(!dl) return;
-    dl.innerHTML =
-      '<option value="전체"></option>' +
-      names.map(n => `<option value="${escapeHtml(n)}"></option>`).join('');
+    const sel = $('optMentor');
+    if(!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = '<option value="전체">전체</option>' +
+      names.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+    if(names.includes(cur)) sel.value = cur;
   }
 
   // ---------- filtering ----------
@@ -622,13 +756,13 @@
         const mentees = Array.isArray(l.mentees) ? l.mentees.join(', ') : '';
         const summary = `멘티: ${mentees}${l.field ? ' · ' + l.field : ''}${(l.field!=='상주멘토링' && l.subject) ? ' / ' + l.subject : ''}`;
         return `<tr>
-          <td>${escapeHtml(l.mentor?.name||'')}</td>
+          <td style="white-space:nowrap">${escapeHtml(l.mentor?.name||'')}</td>
           <td>${escapeHtml(formatDateWithDay(l.date||''))}</td>
           <td>${escapeHtml(summary)}</td>
-          <td>
-            <div class="actions">
-              <button class="btn-sm" data-action="single" data-id="${l.id}">단일 미리보기</button>
-              <button class="btn-sm primary" data-action="singlePrint" data-id="${l.id}">단일 출력</button>
+          <td style="white-space:nowrap">
+            <div class="actions" style="flex-wrap:nowrap">
+              <button class="btn-sm" data-action="single" data-id="${l.id}">미리보기</button>
+              <button class="btn-sm primary" data-action="singlePrint" data-id="${l.id}">출력</button>
               <button class="btn-sm" data-action="edit" data-id="${l.id}">수정</button>
               <button class="btn-sm danger" data-action="del" data-id="${l.id}">삭제</button>
             </div>
@@ -639,94 +773,91 @@
 
   // ---------- stats ----------
   function renderStats(){
-    const logs = getLogs();
+    const allLogs = getLogs();
+    const from = ($('statsFrom')?.value || '').trim();
+    const to = ($('statsTo')?.value || '').trim();
+    const logs = allLogs.filter(l => {
+      if(from && (l.date||'') < from) return false;
+      if(to && (l.date||'') > to) return false;
+      return true;
+    });
+
     const sumEl = $('statsSummary');
     const byMentorEl = $('statsByMentor');
-    const byMenteeEl = $('statsByMentee');
     const byPairEl = $('statsByPair');
-    if(!sumEl || !byMentorEl || !byMenteeEl || !byPairEl) return;
+    if(!sumEl || !byMentorEl || !byPairEl) return;
 
+    const noData = (from || to) ? '해당 기간에 일지가 없습니다.' : '저장된 일지가 없습니다.';
     if(!logs.length){
-      sumEl.innerHTML = `<tr><th>요약</th><td>저장된 일지가 없습니다.</td></tr>`;
+      sumEl.innerHTML = `<tr><th>요약</th><td>${noData}</td></tr>`;
       byMentorEl.innerHTML = `<tr><td colspan="4">-</td></tr>`;
-      byMenteeEl.innerHTML = `<tr><td colspan="2">-</td></tr>`;
-      byPairEl.innerHTML = `<tr><td colspan="3">-</td></tr>`;
+      byPairEl.innerHTML = `<tr><td colspan="4">-</td></tr>`;
       return;
     }
 
     let totalMin = 0;
     for(const l of logs) totalMin += minutesBetween(l.start, l.end);
 
-    const mentorFieldMap = new Map(); // mentor||field -> {mentor, field, sessions, minutes}
-    const menteeMap = new Map(); // mentee -> sessions
-    const pairMap = new Map();   // mentor||mentee -> sessions
+    const mentorSet = new Set();
+    const mfsMap = new Map(); // mentor||field||subject → {mentor,field,subject,sessions}
+    const pairMap = new Map(); // mentor||mentee||subject → {mentor,mentee,subject,sessions}
+    let ratingSum = 0, ratingCount = 0;
 
     for(const l of logs){
       const mentor = l.mentor?.name || '';
-      const mins = minutesBetween(l.start, l.end);
+      const rating = parseInt(l.rating || 0, 10);
+      if(rating > 0){ ratingSum += rating; ratingCount++; }
+      if(!mentor) continue;
 
-      if(mentor){
-        const field = (l.field && String(l.field).trim()) ? String(l.field).trim() : '미분류';
-        const key = `${mentor}||${field}`;
-        const cur = mentorFieldMap.get(key) || { mentor, field, sessions:0, minutes:0 };
-        cur.sessions += 1;
-        cur.minutes += mins;
-        mentorFieldMap.set(key, cur);
-      }
+      mentorSet.add(mentor);
+      const field = (l.field && String(l.field).trim()) ? String(l.field).trim() : '미분류';
+      const subject = (!l.subject || l.field === '상주멘토링') ? '-' : l.subject;
+
+      const mfsKey = `${mentor}||${field}||${subject}`;
+      const mfsCur = mfsMap.get(mfsKey) || { mentor, field, subject, sessions:0 };
+      mfsCur.sessions++;
+      mfsMap.set(mfsKey, mfsCur);
 
       const mentees = Array.isArray(l.mentees) ? l.mentees : [];
       for(const mm of mentees){
         const mentee = String(mm||'').trim();
         if(!mentee) continue;
-        menteeMap.set(mentee, (menteeMap.get(mentee)||0) + 1);
-
-        if(mentor){
-          const key = `${mentor}||${mentee}`;
-          pairMap.set(key, (pairMap.get(key)||0) + 1);
-        }
+        const pKey = `${mentor}||${mentee}||${subject}`;
+        const pCur = pairMap.get(pKey) || { mentor, mentee, subject, sessions:0 };
+        pCur.sessions++;
+        pairMap.set(pKey, pCur);
       }
     }
 
+    const avgRating = ratingCount > 0 ? (ratingSum / ratingCount).toFixed(1) : '-';
     sumEl.innerHTML = `
-      <tr><th style="width:35%">총 일지 수</th><td>${logs.length}건</td></tr>
-      <tr><th>총 활동 회기</th><td>${logs.length}회기</td></tr>
+      <tr><th style="width:35%">총 활동 회기</th><td>${logs.length}회기</td></tr>
       <tr><th>총 누적시간</th><td>${escapeHtml(minutesToText(totalMin))}</td></tr>
-      <tr><th>멘토 수</th><td>${new Set(Array.from(mentorFieldMap.values()).map(v=>v.mentor)).size}명</td></tr>
-      <tr><th>멘티 수</th><td>${menteeMap.size}명</td></tr>
+      <tr><th>멘토 수</th><td>${mentorSet.size}명</td></tr>
+      <tr><th>평균 만족도</th><td>${avgRating}${avgRating !== '-' ? ' / 5.0' : ''}</td></tr>
     `;
 
-    const rows = Array.from(mentorFieldMap.values())
-      .sort((a,b)=> b.sessions - a.sessions || a.mentor.localeCompare(b.mentor,'ko') || a.field.localeCompare(b.field,'ko'));
-
-    byMentorEl.innerHTML = rows.map(r => `
+    const mfsRows = Array.from(mfsMap.values())
+      .sort((a,b) => a.mentor.localeCompare(b.mentor,'ko') || a.field.localeCompare(b.field,'ko') || a.subject.localeCompare(b.subject,'ko'));
+    byMentorEl.innerHTML = mfsRows.map(r => `
       <tr>
         <td>${escapeHtml(r.mentor)}</td>
         <td>${escapeHtml(r.field)}</td>
+        <td>${escapeHtml(r.subject)}</td>
         <td style="text-align:right">${r.sessions}회기</td>
-        <td style="text-align:right">${escapeHtml(minutesToText(r.minutes))}</td>
       </tr>
     `).join('') || `<tr><td colspan="4">-</td></tr>`;
 
-    const mentees = Array.from(menteeMap.entries()).sort((a,b)=> b[1]-a[1] || a[0].localeCompare(b[0],'ko'));
-    byMenteeEl.innerHTML = mentees.map(([name, c]) => `
-      <tr>
-        <td>${escapeHtml(name)}</td>
-        <td style="text-align:right">${c}회기</td>
-      </tr>
-    `).join('') || `<tr><td colspan="2">-</td></tr>`;
-
-    const pairs = Array.from(pairMap.entries()).map(([k,c]) => {
-      const [mentor, mentee] = k.split('||');
-      return { mentor, mentee, c };
-    }).sort((a,b)=> b.c-a.c || a.mentor.localeCompare(b.mentor,'ko') || a.mentee.localeCompare(b.mentee,'ko'));
-
-    byPairEl.innerHTML = pairs.map(p => `
+    const pairRows = Array.from(pairMap.values())
+      .sort((a,b) => a.mentor.localeCompare(b.mentor,'ko') || a.mentee.localeCompare(b.mentee,'ko') || a.subject.localeCompare(b.subject,'ko'));
+    byPairEl.innerHTML = pairRows.map(p => `
       <tr>
         <td>${escapeHtml(p.mentor)}</td>
         <td>${escapeHtml(p.mentee)}</td>
-        <td style="text-align:right">${p.c}회기</td>
+        <td>${escapeHtml(p.subject)}</td>
+        <td style="text-align:right">${p.sessions}회기</td>
       </tr>
-    `).join('') || `<tr><td colspan="3">-</td></tr>`;
+    `).join('') || `<tr><td colspan="4">-</td></tr>`;
   }
 
   // ---------- print html ----------
@@ -1023,6 +1154,7 @@ if(typeof window.onAdminAuthChanged === 'function'){
   window.onAdminAuthChanged(async (user) => {
     const loggedIn = !!user;
     $('adminPanel').style.display = loggedIn ? 'block' : 'none';
+    $('adminConfigCard').style.display = loggedIn ? 'block' : 'none';
     $('adminListCard').style.display = loggedIn ? 'block' : 'none';
     $('adminStatsCard').style.display = loggedIn ? 'block' : 'none';
     $('adminLogout').style.display = loggedIn ? 'inline-flex' : 'none';
@@ -1034,8 +1166,12 @@ if(typeof window.onAdminAuthChanged === 'function'){
     }
 
     try{
-      const fresh = await window.loadAllSessions();
+      const [fresh, cfg] = await Promise.all([
+        window.loadAllSessions(),
+        window.loadConfig ? window.loadConfig() : Promise.resolve(null)
+      ]);
       setLogs(fresh);
+      applyConfig(cfg || DEFAULT_CONFIG);
     }catch(e){
       console.error(e);
       alert('Firestore 불러오기 실패 (관리자 권한/보안규칙 확인)');
@@ -1300,6 +1436,87 @@ $('adminTable').addEventListener('click', async (e) => {
       closeEdit();
       alert('수정되었습니다');
     });
+
+    // 통계 날짜 필터
+    $('btnStatsApply')?.addEventListener('click', renderStats);
+    $('btnStatsReset')?.addEventListener('click', () => {
+      if($('statsFrom')) $('statsFrom').value = '';
+      if($('statsTo')) $('statsTo').value = '';
+      renderStats();
+    });
+
+    // 설정 관리: 분야 추가/삭제
+    $('btnAddField')?.addEventListener('click', async () => {
+      const val = ($('newFieldInput')?.value || '').trim();
+      if(!val) return alert('분야 이름을 입력해 주세요.');
+      const cfg = JSON.parse(JSON.stringify(__currentConfig || DEFAULT_CONFIG));
+      if((cfg.fields || []).includes(val)) return alert('이미 있는 분야입니다.');
+      cfg.fields = [...(cfg.fields || []), val];
+      $('newFieldInput').value = '';
+      await saveCurrentConfig(cfg);
+      applyConfig(cfg);
+    });
+    $('fieldsList')?.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-remove-field]');
+      if(!btn) return;
+      const f = btn.dataset.removeField;
+      if(!confirm(`"${f}" 분야를 삭제할까요?`)) return;
+      const cfg = JSON.parse(JSON.stringify(__currentConfig || DEFAULT_CONFIG));
+      cfg.fields = (cfg.fields || []).filter(x => x !== f);
+      await saveCurrentConfig(cfg);
+      applyConfig(cfg);
+    });
+
+    // 설정 관리: 과목 추가/삭제
+    $('btnAddSubject')?.addEventListener('click', async () => {
+      const val = ($('newSubjectInput')?.value || '').trim();
+      if(!val) return alert('과목 이름을 입력해 주세요.');
+      const cfg = JSON.parse(JSON.stringify(__currentConfig || DEFAULT_CONFIG));
+      if((cfg.subjects || []).includes(val)) return alert('이미 있는 과목입니다.');
+      cfg.subjects = [...(cfg.subjects || []), val];
+      $('newSubjectInput').value = '';
+      await saveCurrentConfig(cfg);
+      applyConfig(cfg);
+    });
+    $('subjectsList')?.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-remove-subject]');
+      if(!btn) return;
+      const s = btn.dataset.removeSubject;
+      if(!confirm(`"${s}" 과목을 삭제할까요?`)) return;
+      const cfg = JSON.parse(JSON.stringify(__currentConfig || DEFAULT_CONFIG));
+      cfg.subjects = (cfg.subjects || []).filter(x => x !== s);
+      await saveCurrentConfig(cfg);
+      applyConfig(cfg);
+    });
+
+    // 설정 관리: 멘티 추가/삭제
+    $('btnAddMentee')?.addEventListener('click', async () => {
+      const name = ($('newMenteeName')?.value || '').trim();
+      const field = ($('newMenteeField')?.value || '').trim();
+      const subject = ($('newMenteeSubject')?.value || '').trim();
+      if(!name) return alert('멘티 이름을 입력해 주세요.');
+      if(!field) return alert('분야를 선택해 주세요.');
+      const cfg = JSON.parse(JSON.stringify(__currentConfig || DEFAULT_CONFIG));
+      cfg.mentees = [...(cfg.mentees || []), { name, field, subject, active: true }];
+      $('newMenteeName').value = '';
+      $('newMenteeField').value = '';
+      $('newMenteeSubject').value = '';
+      await saveCurrentConfig(cfg);
+      applyConfig(cfg);
+      renderEditMenteeChecklist();
+    });
+    $('menteeConfigTable')?.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-remove-mentee]');
+      if(!btn) return;
+      const idx = parseInt(btn.dataset.removeMentee, 10);
+      const cfg = JSON.parse(JSON.stringify(__currentConfig || DEFAULT_CONFIG));
+      const m = (cfg.mentees || [])[idx];
+      if(!m) return;
+      if(!confirm(`"${m.name}" 멘티를 삭제할까요?`)) return;
+      cfg.mentees = (cfg.mentees || []).filter((_, i) => i !== idx);
+      await saveCurrentConfig(cfg);
+      applyConfig(cfg);
+    });
   });
 })();
 </script>
@@ -1308,7 +1525,7 @@ $('adminTable').addEventListener('click', async (e) => {
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
   import {
     getFirestore, collection, getDocs,
-    doc, deleteDoc, updateDoc, writeBatch
+    doc, deleteDoc, updateDoc, writeBatch, getDoc, setDoc
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
   // ✅ 본인 Firebase 프로젝트 설정 (이미 값이 들어있으면 그대로 두면 됩니다)
@@ -1349,6 +1566,20 @@ $('adminTable').addEventListener('click', async (e) => {
     const batch = writeBatch(db);
     snap.forEach(d => batch.delete(d.ref));
     await batch.commit();
+  };
+
+  window.loadConfig = async () => {
+    try {
+      const snap = await getDoc(doc(db, 'meta', 'config'));
+      return snap.exists() ? snap.data() : null;
+    } catch (e) {
+      console.error('loadConfig error', e);
+      return null;
+    }
+  };
+
+  window.saveConfig = async (cfg) => {
+    await setDoc(doc(db, 'meta', 'config'), cfg);
   };
 </script>
 </body>
