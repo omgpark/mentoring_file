@@ -190,23 +190,11 @@
       <label>활동 분야</label>
       <select id="field">
         <option value="">선택</option>
-        <option value="고졸">고졸</option>
-        <option value="중졸">중졸</option>
-        <option value="초졸">초졸</option>
-        <option value="기초학습">기초학습</option>
-        <option value="상주멘토링">상주멘토링</option>
-        <option value="특강">특강</option>
       </select>
 
       <label>과목</label>
       <select id="subject">
         <option value="">선택</option>
-        <option value="국어">국어</option>
-        <option value="영어">영어</option>
-        <option value="수학">수학</option>
-        <option value="사회">사회</option>
-        <option value="과학">과학</option>
-        <option value="한국사">한국사</option>
       </select>
 
       <label for="youths">멘티 선택</label>
@@ -338,22 +326,11 @@
         <label style="font-weight:700;font-size:13px">활동 분야</label>
         <select id="editField">
           <option value="">선택</option>
-          <option value="고졸">고졸</option>
-          <option value="중졸">중졸</option>
-          <option value="초졸">초졸</option>
-          <option value="기초학습">기초학습</option>
-          <option value="상주멘토링">상주멘토링</option>
         </select>
 
         <label style="font-weight:700;font-size:13px">과목</label>
         <select id="editSubject">
           <option value="">선택</option>
-          <option value="국어">국어</option>
-          <option value="영어">영어</option>
-          <option value="수학">수학</option>
-          <option value="사회">사회</option>
-          <option value="과학">과학</option>
-          <option value="한국사">한국사</option>
         </select>
 
         <label style="font-weight:700;font-size:13px">활동 내용</label>
@@ -509,74 +486,63 @@ const sections = Array.from(document.querySelectorAll('main section'));
   // =========================
   // 멘티 체크리스트 (index.html에서 직접 관리)
   // =========================
-  const MENTEES = [
-  // 고졸 · 국어
-  { name: "임경환", field: "고졸", subject: "국어" },
-  { name: "조민희", field: "고졸", subject: "국어" },
-  { name: "홍주현", field: "고졸", subject: "국어" },
-  { name: "정제헌", field: "고졸", subject: "국어" },
-  { name: "이건", field: "고졸", subject: "국어" },
+  const DEFAULT_CONFIG = {
+    fields: ['고졸','중졸','초졸','기초학습','상주멘토링','특강'],
+    subjects: ['국어','영어','수학','사회','과학','한국사'],
+    mentees: [
+      {name:"임경환",field:"고졸",subject:"국어"},
+      {name:"조민희",field:"고졸",subject:"국어"},
+      {name:"홍주현",field:"고졸",subject:"국어"},
+      {name:"정제헌",field:"고졸",subject:"국어"},
+      {name:"이건",field:"고졸",subject:"국어"},
+      {name:"김형준",field:"기초학습",subject:"수학"},
+      {name:"박수빈",field:"기초학습",subject:"수학"},
+      {name:"박소민",field:"기초학습",subject:"수학"},
+      {name:"이혜원",field:"기초학습",subject:"수학"},
+      {name:"유지수",field:"기초학습",subject:"수학"},
+      {name:"정태성",field:"기초학습",subject:"수학"},
+      {name:"양민철",field:"기초학습",subject:"수학"},
+      {name:"김서희",field:"기초학습",subject:"수학"},
+      {name:"김서희",field:"기초학습",subject:"영어"},
+      {name:"김민영",field:"기초학습",subject:"영어"},
+      {name:"이슬",field:"기초학습",subject:"영어"},
+      {name:"양민철",field:"기초학습",subject:"영어"},
+      {name:"고은사랑",field:"고졸",subject:"수학"},
+      {name:"이시은",field:"고졸",subject:"수학"},
+      {name:"윤여운",field:"고졸",subject:"수학"},
+      {name:"홍주현",field:"고졸",subject:"수학"},
+      {name:"김형준",field:"고졸",subject:"영어"},
+      {name:"김서희",field:"고졸",subject:"영어"},
+      {name:"서예령",field:"고졸",subject:"영어"},
+      {name:"조민우",field:"고졸",subject:"영어"},
+      {name:"정태성",field:"고졸",subject:"영어"},
+      {name:"양민철",field:"고졸",subject:"영어"},
+      {name:"정제헌",field:"고졸",subject:"영어"},
+      {name:"김형준",field:"고졸",subject:"과학"},
+      {name:"이혜원",field:"고졸",subject:"과학"},
+      {name:"이시은",field:"고졸",subject:"과학"},
+      {name:"조민우",field:"고졸",subject:"과학"},
+      {name:"김태연",field:"고졸",subject:"과학"},
+      {name:"윤여운",field:"고졸",subject:"과학"},
+      {name:"정윤서",field:"고졸",subject:"과학"},
+      {name:"고수진",field:"고졸",subject:"한국사"},
+      {name:"신현주",field:"고졸",subject:"한국사"},
+      {name:"이정원",field:"고졸",subject:"한국사"},
+      {name:"유지수",field:"고졸",subject:"한국사"},
+      {name:"임경환",field:"고졸",subject:"한국사"},
+      {name:"유시은",field:"고졸",subject:"한국사"},
+      {name:"장은호",field:"고졸",subject:"한국사"},
+      {name:"장희재",field:"고졸",subject:"한국사"},
+      {name:"조민희",field:"고졸",subject:"한국사"},
+      {name:"김영우",field:"중졸",subject:"수학"},
+      {name:"김수아",field:"중졸",subject:"수학"},
+      {name:"송지은",field:"중졸",subject:"수학"},
+      {name:"윤준서",field:"중졸",subject:"수학"},
+      {name:"최시언",field:"초졸",subject:"수학"}
+    ]
+  };
 
-  // 기초학습 · 수학
-  { name: "김형준", field: "기초학습", subject: "수학" },
-  { name: "박수빈", field: "기초학습", subject: "수학" },
-  { name: "박소민", field: "기초학습", subject: "수학" },
-  { name: "이혜원", field: "기초학습", subject: "수학" },
-  { name: "유지수", field: "기초학습", subject: "수학" },
-  { name: "정태성", field: "기초학습", subject: "수학" },
-  { name: "양민철", field: "기초학습", subject: "수학" },
-  { name: "김서희", field: "기초학습", subject: "수학" },
-
-  // 기초학습 · 영어
-  { name: "김서희", field: "기초학습", subject: "영어" },
-  { name: "김민영", field: "기초학습", subject: "영어" },
-  { name: "이슬", field: "기초학습", subject: "영어" },   
-  { name: "양민철", field: "기초학습", subject: "영어" },
-   
-  // 고졸 · 수학
-  { name: "고은사랑", field: "고졸", subject: "수학" },
-  { name: "이시은", field: "고졸", subject: "수학" },
-  { name: "윤여운", field: "고졸", subject: "수학" },
-  { name: "홍주현", field: "고졸", subject: "수학" },
-
-  // 고졸 · 영어
-  { name: "김형준", field: "고졸", subject: "영어" },
-  { name: "김서희", field: "고졸", subject: "영어" },
-  { name: "서예령", field: "고졸", subject: "영어" },
-  { name: "조민우", field: "고졸", subject: "영어" },
-  { name: "정태성", field: "고졸", subject: "영어" },
-  { name: "양민철", field: "고졸", subject: "영어" },
-  { name: "정제헌", field: "고졸", subject: "영어" },
-
-  // 고졸 · 과학
-  { name: "김형준", field: "고졸", subject: "과학" },
-  { name: "이혜원", field: "고졸", subject: "과학" },
-  { name: "이시은", field: "고졸", subject: "과학" },
-  { name: "조민우", field: "고졸", subject: "과학" },
-  { name: "김태연", field: "고졸", subject: "과학" },
-  { name: "윤여운", field: "고졸", subject: "과학" },
-  { name: "정윤서", field: "고졸", subject: "과학" },
-
-  // 고졸 · 한국사
-  { name: "고수진", field: "고졸", subject: "한국사" },
-  { name: "신현주", field: "고졸", subject: "한국사" },
-  { name: "이정원", field: "고졸", subject: "한국사" },
-  { name: "유지수", field: "고졸", subject: "한국사" },
-  { name: "임경환", field: "고졸", subject: "한국사" },
-  { name: "유시은", field: "고졸", subject: "한국사" },
-  { name: "장은호", field: "고졸", subject: "한국사" },
-  { name: "장희재", field: "고졸", subject: "한국사" },
-  { name: "조민희", field: "고졸", subject: "한국사" },
-
-  // 중졸 · 수학
-  { name: "김영우", field: "중졸", subject: "수학" },
-  { name: "김수아", field: "중졸", subject: "수학" },
-  { name: "송지은", field: "중졸", subject: "수학" },
-  { name: "윤준서", field: "중졸", subject: "수학" },
-
-  // 초졸 · 수학
-  { name: "최시언", field: "초졸", subject: "수학" }
-];
+  let MENTEES = DEFAULT_CONFIG.mentees.slice();
 
   function normalize(v){ return (v || '').trim(); }
 
@@ -584,6 +550,7 @@ const sections = Array.from(document.querySelectorAll('main section'));
     const f = normalize(field);
     const s = normalize(subject);
     return MENTEES.filter(m => {
+      if(m.active === false) return false; // 비활성 멘티는 신규 작성 체크리스트에서 숨김
       if(f && m.field !== f) return false;
       if(s && m.subject !== s) return false;
       return true;
@@ -603,8 +570,33 @@ const sections = Array.from(document.querySelectorAll('main section'));
     return out;
   }
 
-  // ✅ 전체(모든 과목/분야) '정해진 멘티' 이름 Set (추가 인원 판별용)
-  const ALL_PRESET_NAME_SET = new Set(uniqueNames(MENTEES));
+  let ALL_PRESET_NAME_SET = new Set(uniqueNames(MENTEES));
+
+  function populateSelect(id, values, firstOpt) {
+    const sel = $(id);
+    if(!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = `<option value="${escapeHtml(firstOpt.value)}">${escapeHtml(firstOpt.label)}</option>` +
+      values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+    if(values.includes(cur)) sel.value = cur;
+  }
+
+  function applyConfig(cfg) {
+    const c = cfg || DEFAULT_CONFIG;
+    MENTEES = Array.isArray(c.mentees) ? c.mentees : DEFAULT_CONFIG.mentees;
+    ALL_PRESET_NAME_SET = new Set(uniqueNames(MENTEES));
+    const fields = Array.isArray(c.fields) ? c.fields : DEFAULT_CONFIG.fields;
+    const subjects = Array.isArray(c.subjects) ? c.subjects : DEFAULT_CONFIG.subjects;
+    populateSelect('field', fields, { value: '', label: '선택' });
+    populateSelect('subject', subjects, { value: '', label: '선택' });
+    populateSelect('editField', fields, { value: '', label: '선택' });
+    populateSelect('editSubject', subjects, { value: '', label: '선택' });
+  }
+
+  window.onConfigLoaded = function(cfg) {
+    applyConfig(cfg);
+    updateMenteeSectionState();
+  };
 
   function getAllowedMenteeSet(field, subject){
     const list = filterMentees(field, subject);
@@ -766,6 +758,7 @@ function escapeHtml(s){
     const mi = $('mentorInfo');
     if(mi) mi.textContent = mentor ? `현재 출석 멘토: ${mentor.name} (${mentor.birth})` : '출석 등록 후 활동일지를 작성해 주세요.';
   }
+  applyConfig(DEFAULT_CONFIG);
   syncMentorInfo(); syncFieldSubjectUI(); syncPlaceUI();
   function updateMenteeSectionState(){
   const field = $('field')?.value || "";
@@ -921,23 +914,180 @@ function escapeHtml(s){
   if(!isMMDD(m) || !isMMDD(d)) return alert('월/일은 2자리로 입력해 주세요.');
 
   const birth = `${y}-${m}-${d}`;
+  $('myList').innerHTML = '<div class="muted">조회 중…</div>';
 
-  // ✅ 이 기기(브라우저)에 저장된 기록에서 조회 (Firestore 전체조회는 보안상 차단)
-  const raw = localStorage.getItem('mentor_local_sessions_v1');
-  const all = raw ? (JSON.parse(raw) || []) : [];
+  let logs = [];
+  if (typeof window.queryMyLogs === 'function') {
+    try {
+      logs = await window.queryMyLogs(name, birth);
+    } catch(err) {
+      console.warn('Firestore 조회 실패, localStorage로 대체합니다', err);
+      const raw = localStorage.getItem('mentor_local_sessions_v1');
+      const all = raw ? (JSON.parse(raw) || []) : [];
+      logs = all.filter(l => l?.mentor?.name === name && l?.mentor?.birth === birth);
+    }
+  } else {
+    const raw = localStorage.getItem('mentor_local_sessions_v1');
+    const all = raw ? (JSON.parse(raw) || []) : [];
+    logs = all.filter(l => l?.mentor?.name === name && l?.mentor?.birth === birth);
+  }
 
-  const logs = (all || []).filter(l => l?.mentor?.name === name && l?.mentor?.birth === birth);
-
-  $('myList').innerHTML = logs.length
-    ? logs.sort((a,b) => (a.date||'').localeCompare(b.date||'')).map(l => `
+  const sorted = logs.sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  $('myList').innerHTML = sorted.length
+    ? sorted.map((l, i) => `
         <div class="card">
-          <div><b>${escapeHtml((l.date||'').replace(/-/g,'.'))}</b> · ${escapeHtml(l.time||'')}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><b>${escapeHtml((l.date||'').replace(/-/g,'.'))}</b> · ${escapeHtml(l.time||'')}</div>
+            <button class="btn-sm" type="button" data-edit-index="${i}" style="flex-shrink:0">수정</button>
+          </div>
           <div class="muted">멘티: ${escapeHtml((Array.isArray(l.mentees)?l.mentees:[]).join(', '))}</div>
           <div class="muted">분야/과목: ${escapeHtml(l.field||'')} · ${escapeHtml(l.subject||'')}</div>
         </div>
       `).join('')
-    : '<div class="muted">이 기기에서 저장된 기록이 없습니다. (다른 기기에서 작성한 기록은 여기서 보이지 않아요)</div>';
+    : '<div class="muted">일치하는 기록이 없습니다.</div>';
+
+  _mySearchResults = sorted;
 });
+
+  // ── 내 일지 수정 ─────────────────────────────────────────────
+  let _mySearchResults = [];
+  let _editIdx = -1;
+
+  $('myList').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-edit-index]');
+    if (!btn) return;
+    _editIdx = parseInt(btn.dataset.editIndex, 10);
+    const l = _mySearchResults[_editIdx];
+    if (!l) return;
+
+    $('editHint').textContent = `${(l.date||'').replace(/-/g,'.')} 일지를 수정합니다.`;
+    $('editMentorName').value = l.mentor?.name || '';
+    $('editMentorBirth').value = l.mentor?.birth || '';
+    $('editDate').value = l.date || '';
+    $('editStart').value = l.start || '';
+    $('editEnd').value = l.end || '';
+    $('editMentees').value = Array.isArray(l.mentees) ? l.mentees.join('\n') : (l.mentees || '');
+
+    const placeStr = l.place || '';
+    if (placeStr.startsWith('대면')) {
+      $('editPlaceMode').value = '대면';
+      const detail = placeStr.replace(/^대면\s*\/?\s*/, '').trim();
+      $('editPlaceDetail').value = detail;
+    } else if (placeStr === '비대면') {
+      $('editPlaceMode').value = '비대면';
+      $('editPlaceDetail').value = '';
+    } else {
+      $('editPlaceMode').value = '';
+      $('editPlaceDetail').value = '';
+    }
+
+    $('editField').value = l.field || '';
+    $('editSubject').value = l.subject || '';
+    $('editContent').value = l.content || '';
+    $('editReflection').value = l.reflection || '';
+    $('editRating').value = l.rating ?? 0;
+    $('editRequest').value = l.request || '';
+    $('editNext').value = l.next || '';
+
+    $('editBackdrop').setAttribute('aria-hidden', 'false');
+    $('editBackdrop').style.display = 'flex';
+  });
+
+  function closeEditModal() {
+    $('editBackdrop').setAttribute('aria-hidden', 'true');
+    $('editBackdrop').style.display = 'none';
+    _editIdx = -1;
+  }
+
+  on('btnCloseEdit', 'click', closeEditModal);
+  on('btnCancelEdit', 'click', closeEditModal);
+
+  on('btnSaveEdit', 'click', async () => {
+    if (_editIdx < 0) return;
+    const l = _mySearchResults[_editIdx];
+    if (!l) return;
+
+    const name = $('editMentorName').value.trim();
+    const birth = $('editMentorBirth').value.trim();
+    const date = $('editDate').value.trim();
+    const s = normalizeTime($('editStart').value);
+    const e = normalizeTime($('editEnd').value);
+
+    if (!name) return alert('멘토 이름을 입력해 주세요.');
+    if (!date) return alert('활동 날짜를 입력해 주세요.');
+    if (!/^\d{2}:\d{2}$/.test(s) || !/^\d{2}:\d{2}$/.test(e)) return alert('시간은 1530 또는 15:30 형식으로 입력해 주세요.');
+
+    const mode = $('editPlaceMode').value;
+    const detail = $('editPlaceDetail').value.trim();
+    const place = mode ? (mode === '대면' ? `대면 / ${detail}`.trim() : '비대면') : '';
+
+    const field = $('editField').value;
+    const subject = field === '상주멘토링' ? '' : $('editSubject').value;
+
+    const mentees = parseMentees($('editMentees').value);
+    if (!mentees.length) return alert('멘티를 1명 이상 입력해 주세요.');
+
+    const total = calcTotal(s, e) || '0시간 0분';
+    const updated = {
+      ...l,
+      mentor: { name, birth },
+      date,
+      start: s,
+      end: e,
+      time: `${s} ~ ${e}`,
+      total,
+      place,
+      field,
+      subject,
+      mentees,
+      content: $('editContent').value,
+      reflection: $('editReflection').value,
+      rating: parseInt($('editRating').value, 10) || 0,
+      request: $('editRequest').value,
+      next: $('editNext').value,
+    };
+
+    // localStorage 업데이트
+    try {
+      const key = 'mentor_local_sessions_v1';
+      const raw = localStorage.getItem(key);
+      const arr = raw ? (JSON.parse(raw) || []) : [];
+      const globalIdx = arr.findIndex(item => item === l || (l.id && item.id === l.id));
+      if (globalIdx >= 0) arr[globalIdx] = updated;
+      else arr.push(updated);
+      localStorage.setItem(key, JSON.stringify(arr));
+    } catch(err) {
+      console.warn('local update failed', err);
+    }
+
+    // Firestore 업데이트
+    if (l.id && typeof window.updateSession === 'function') {
+      try {
+        const { id: _id, ...fields } = updated;
+        await window.updateSession(l.id, fields);
+      } catch(err) {
+        console.warn('Firestore update failed', err);
+      }
+    }
+
+    _mySearchResults[_editIdx] = updated;
+
+    // 카드 다시 렌더
+    $('myList').innerHTML = _mySearchResults.map((item, i) => `
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><b>${escapeHtml((item.date||'').replace(/-/g,'.'))}</b> · ${escapeHtml(item.time||'')}</div>
+          <button class="btn-sm" type="button" data-edit-index="${i}" style="flex-shrink:0">수정</button>
+        </div>
+        <div class="muted">멘티: ${escapeHtml((Array.isArray(item.mentees)?item.mentees:[]).join(', '))}</div>
+        <div class="muted">분야/과목: ${escapeHtml(item.field||'')} · ${escapeHtml(item.subject||'')}</div>
+      </div>
+    `).join('');
+
+    alert('수정되었습니다.');
+    closeEditModal();
+  });
+  // ──────────────────────────────────────────────────────────────
 
 /* (관리자 로컬스토리지 기능 제거됨: admin.html에서만 관리) */
 
@@ -1043,7 +1193,7 @@ function openPrintWindow(html){
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, doc, updateDoc, query, where, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCQ_puEGRMy3HEKe1WozrJ2TgLVT2OG4oE",
@@ -1075,6 +1225,30 @@ function openPrintWindow(html){
 
     return ref.id;
   };
+
+  window.updateSession = async (id, fields) => {
+    await updateDoc(doc(db, 'sessions', id), fields);
+  };
+
+  window.queryMyLogs = async (name, birth) => {
+    const q = query(
+      collection(db, 'sessions'),
+      where('mentor.name', '==', name),
+      where('mentor.birth', '==', birth)
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  };
+
+  // 설정 로드 후 메인 스크립트에 알림
+  try {
+    const snap = await getDoc(doc(db, 'meta', 'config'));
+    if(snap.exists() && typeof window.onConfigLoaded === 'function'){
+      window.onConfigLoaded(snap.data());
+    }
+  } catch(e) {
+    console.warn('config load skipped', e);
+  }
 </script>
 
 </body>
