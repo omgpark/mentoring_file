@@ -1123,7 +1123,7 @@
   }
 
   // ---------- events ----------
-  document.addEventListener('DOMContentLoaded', () => {
+  window.addEventListener('load', () => {
     // login
     $('adminLogin').addEventListener('click', async () => {
   const email = ($('adminEmail').value || '').trim();
