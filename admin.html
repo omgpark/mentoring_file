@@ -474,7 +474,7 @@
       {name:"유지수",field:"기초학습",subject:"수학"},
       {name:"정태성",field:"기초학습",subject:"수학"},
       {name:"양민철",field:"기초학습",subject:"수학"},
-      {name:"김서희",field:"기초학습",subject:"수학"},     
+      {name:"김서희",field:"기초학습",subject:"수학"},
       {name:"김서희",field:"기초학습",subject:"영어"},
       {name:"김민영",field:"기초학습",subject:"영어"},
       {name:"이슬",field:"기초학습",subject:"영어"},
@@ -483,19 +483,6 @@
       {name:"이시은",field:"고졸",subject:"수학"},
       {name:"윤여운",field:"고졸",subject:"수학"},
       {name:"홍주현",field:"고졸",subject:"수학"},
-      {name:"이수진",field:"고졸",subject:"수학"},
-      {name:"김형준",field:"고졸",subject:"수학"},
-      {name:"박소민",field:"고졸",subject:"수학"},
-      {name:"이강우",field:"고졸",subject:"수학"},
-      {name:"이태규",field:"고졸",subject:"수학"},
-      {name:"남규비",field:"고졸",subject:"수학"},
-      {name:"조민우",field:"고졸",subject:"수학"},
-      {name:"최윤지",field:"고졸",subject:"수학"},
-      {name:"김민서",field:"고졸",subject:"사회"},
-      {name:"최기준",field:"고졸",subject:"사회"},
-      {name:"장은호",field:"고졸",subject:"사회"},
-      {name:"조민희",field:"고졸",subject:"사회"},
-      {name:"조민우",field:"고졸",subject:"사회"},
       {name:"김형준",field:"고졸",subject:"영어"},
       {name:"김서희",field:"고졸",subject:"영어"},
       {name:"서예령",field:"고졸",subject:"영어"},
@@ -510,11 +497,6 @@
       {name:"김태연",field:"고졸",subject:"과학"},
       {name:"윤여운",field:"고졸",subject:"과학"},
       {name:"정윤서",field:"고졸",subject:"과학"},
-      {name:"박종민",field:"고졸",subject:"과학"},
-      {name:"전소현",field:"고졸",subject:"과학"},
-      {name:"조민희",field:"고졸",subject:"과학"},
-      {name:"이수진",field:"고졸",subject:"과학"},
-      {name:"박소민",field:"고졸",subject:"과학"},
       {name:"고수진",field:"고졸",subject:"한국사"},
       {name:"신현주",field:"고졸",subject:"한국사"},
       {name:"이정원",field:"고졸",subject:"한국사"},
@@ -524,20 +506,11 @@
       {name:"장은호",field:"고졸",subject:"한국사"},
       {name:"장희재",field:"고졸",subject:"한국사"},
       {name:"조민희",field:"고졸",subject:"한국사"},
-      {name:"박종민",field:"고졸",subject:"한국사"},
-      {name:"김민서",field:"고졸",subject:"한국사"},
-      {name:"조민우",field:"고졸",subject:"한국사"},
-      {name:"정서영",field:"고졸",subject:"한국사"},
-      {name:"정윤서",field:"고졸",subject:"한국사"},
-      {name:"이혜원",field:"고졸",subject:"한국사"},
       {name:"김영우",field:"중졸",subject:"수학"},
       {name:"김수아",field:"중졸",subject:"수학"},
       {name:"송지은",field:"중졸",subject:"수학"},
       {name:"윤준서",field:"중졸",subject:"수학"},
-      {name:"강윤슬",field:"중졸",subject:"수학"},
-      {name:"김우현",field:"중졸",subject:"수학"},
       {name:"최시언",field:"초졸",subject:"수학"}
-      {name:"김우준",field:"초졸",subject:"영어"}
     ]
   };
 
@@ -1123,7 +1096,7 @@
   }
 
   // ---------- events ----------
-  window.addEventListener('load', () => {
+  window._adminInit = function() {
     // login
     $('adminLogin').addEventListener('click', async () => {
   const email = ($('adminEmail').value || '').trim();
@@ -1528,7 +1501,7 @@ $('adminTable').addEventListener('click', async (e) => {
       await saveCurrentConfig(cfg);
       applyConfig(cfg);
     });
-  });
+  };
 })();
 </script>
 <script type="module">
@@ -1592,6 +1565,8 @@ $('adminTable').addEventListener('click', async (e) => {
   window.saveConfig = async (cfg) => {
     await setDoc(doc(db, 'meta', 'config'), cfg);
   };
+
+  if (typeof window._adminInit === 'function') window._adminInit();
 </script>
 </body>
 </html>
